@@ -2,49 +2,31 @@
 
 ;; General helpers
 
-(defn- str-join [& items] (apply str (flatten items)))
-
-(defn- str-k [x] (if (keyword? x) (name x) x))
-
-(defn- inc-nil [x] (if x (inc x)))
+(defn- str-join [& items] (apply str (map #(if (keyword? %1) (name %1) %1) (flatten items))))
 
 ;; Core types
 
-(defprotocol TagProtocol
-	(toString [this depth]))
-
 (defrecord Tag [tag-name attrs css items]
 	java.lang.Object
-		(toString [this] (toString this 0)) ; 0 to enable pretty-printing by default, nil for no pp by default.
-	TagProtocol
-		(toString [this depth]
-			(let [spaces (if depth (str-join (repeat (* 2 depth) " ")))
-			      tabbed-in (> (or depth 0) 0)
-			      has-children (some (partial instance? Tag) items)
-			      attrs-with-css (if (empty? css) attrs (assoc attrs :style (str css)))
-			      str-item (fn [item] (if (instance? Tag item) (toString item (inc-nil depth)) (str-k item)))]
-				(str
-					spaces
-					"<" tag-name attrs-with-css
-					(if (empty? items)
-						" />"
-						(str-join
-							">"
-							(if (and depth has-children) "\r\n")
-							(map str-item items)
-							(if has-children spaces)
-							"</" tag-name ">"))
-					(if tabbed-in "\r\n")))))
+	(toString [this]
+		(let [attrs-css (if (empty? css) attrs (assoc attrs :style (str css)))]
+			(str-join
+				"<" tag-name attrs-css (if (empty? items) " /") ">"
+				items
+				"</" tag-name ">"))))
+
+(defmethod print-method Tag [t ^java.io.Writer w]
+	(.write w (str t)))
 
 (defrecord Attrs []
 	java.lang.Object
-		(toString [this]
-			(str-join (map (fn [[k v]] (str " " (str-k k) "=\"" (str-k v) "\"")) this))))
+	(toString [this]
+		(str-join (map (fn [[k v]] [" " k "=\"" v "\""]) this))))
 
 (defrecord Css []
 	java.lang.Object
-		(toString [this]
-			(str-join (map (fn [[k v]] (str "; " (str-k k) ": " (str-k v))) this) ";")))
+	(toString [this]
+		(str-join (map (fn [[k v]] ["; " k ": " v]) this) ";")))
 
 ;; Builder functions
 
@@ -56,10 +38,10 @@
 
 (defn css? [x] (instance? Css x))
 
+(defn child-item? [x] (not (or (attrs? x) (css? x))))
+
 (defn attrs+ [tag & key-vals]
 	(assoc tag :attrs (merge (:attrs tag) (apply hash-map key-vals))))
-
-(defn child-item? [x] (not (or (attrs? x) (css? x))))
 
 (defn css+ [tag & key-vals]
 	(assoc tag :css (merge (:css tag) (apply hash-map key-vals))))
@@ -73,35 +55,40 @@
 (defn tag* [nm & stuff]
 	(let [attrs (apply merge attrs0 (filter attrs? stuff))
 	      css (apply merge css0 (filter css? stuff))
-	      items (filter child-item? stuff)]
+	      items (flatten (filter child-item? stuff))]
 		(Tag. nm attrs css items)))
 
-;; Declaring a whole bunch of functions
+(defn !-- [& content] (str-join "<!-- " content " -->"))
 
-(dorun (map (fn [sym] (eval `(def ~sym (partial tag* ~(str sym))))) [
+;; Declaring a whole bunch of tags
+
+(defn declare-tag [sym] (eval `(defn ~sym [& ~'items] (apply tag* ~(str sym) ~'items))))
+
+(dorun (map declare-tag [
 	'h1 'h2 'h3 'h4 'h5 'h6
 	'b 'i 'u 's 'del 'ins 'small 'sup 'sub 'pre 'q 'cite 'mark
+	'a 'img 'embed 'object 'param
 	'ul 'ol 'li 'dl 'dt 'dd
-	'p 'span 'div 'nav 'br 'canvas
+	'p 'span 'div 'nav 'br 'canvas 'textarea
 	; map/area/img.usemap ?
 	'table 'thead 'tbody 'tfoot 'th 'tr 'td 'caption 'colgroup 'col
 	'address 'article 'header 'footer 'main 'section 'aside 'figure 'figcaption
-	'form 'legend 'fieldset 'select 'datalist
+	'form 'legend 'fieldset 'select 'input 'button
 	'html 'head 'title 'style 'body 'noscript]))
 
+;; Declaring a whole bunch of attributes
+
+(defn declare-attr [sym]
+	(let [attr-key (keyword (.replace (str sym) "-attr" ""))]
+		(eval `(defn ~sym
+			([~'value] (attrs* ~attr-key ~'value))
+			([~'value ~'tag] (attrs+ ~'tag ~attr-key ~'value))))))
+
+(dorun (map declare-attr [
+	'id 'width 'height 'rows 'cols 'href 'src 'alt 'controls
+	'name-attr 'type-attr 'title-attr 'class-attr 'cite-attr]))
+
 ;; Tags with specific features
-
-; object/param?
-
-(defn a [url & items] (tag* "a" {:href url} items))
-
-(defn datetime
-	([content] (tag* "time" content))
-	([timestring content] (tag* "time" {:datetime timestring} content)))
-
-(defn img [url & items] (tag* "img" {:src url} items))
-
-(defn embed [url & items] (tag* "embed" {:src url} items))
 
 (defn audio [controls & items] (tag* "audio" {:controls controls} items))
 
@@ -117,6 +104,10 @@
 
 (defn blockquote [src & items] (tag* "blockquote" {:cite src} items))
 
+(defn datetime
+	([content] (tag* "time" content))
+	([timestring content] (tag* "time" {:datetime timestring} content)))
+
 (defn option
 	([value] (tag* "option" {:value value} value))
 	([label value] (tag* "option" {:value value} label)))
@@ -126,12 +117,6 @@
 (defn iframe [url] (tag* "iframe" {:src url}))
 
 (defn progress [value maximum] (tag* "progress" {:value value :max maximum}))
-
-(defn textarea [id rows cols] (tag* "textarea" {:rows rows :cols cols}))
-
-(defn input [id type] (tag* "input" {:id id :type type}))
-
-(defn button [id text] (tag* "button" {:id id} text))
 
 (defn label [target-id text] (tag* "label" {:for target-id} text))
 
@@ -184,29 +169,13 @@
 	([version] (import-script "javascript"
 		(str "http://ajax.googleapis.com/ajax/libs/jquery/" version "/jquery.min.js"))))
 
-;; Decorators
+;; Attribute/CSS Decorators
 ;; Each function has a version that can be inserted in a tag's children:
 ;;     (div (center) "Contents")
 ;;     (p (color :red) "Contents")
 ;; And another version that takes an additional argument and decorates it:
 ;;     (center some-tag)
 ;;     (color :red some-tag)
-
-(defn id
-	([i] (attrs* :id i))
-	([i tag] (attrs+ tag :id i)))
-
-(defn css-class
-	([class-name] (attrs* :class class-name))
-	([class-name tag] (attrs+ tag :class class-name)))
-
-(defn width
-	([w] (attrs* :width w))
-	([w tag] (attrs+ tag :width w)))
-
-(defn height
-	([h] (attrs* :height h))
-	([h tag] (attrs+ tag :height h)))
 
 (defn hide
 	([] (css* :display "none"))
