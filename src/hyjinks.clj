@@ -1,8 +1,12 @@
 (ns hyjinks)
 
+(require 'clojure.string)
+
 ;; General helpers
 
 (defn- str-join [& items] (apply str (map #(if (keyword? %1) (name %1) %1) (flatten items))))
+
+(defn- html-escape [s] (clojure.string/escape s {\< "&lt;" \> "&gt;" \& "&amp;" \" "&quot;" \' "&#39;"}))
 
 ;; Core types
 
@@ -11,9 +15,10 @@
 	(toString [this]
 		(let [attrs-css (if (empty? css) attrs (assoc attrs :style (str css)))]
 			(str-join
-				"<" tag-name attrs-css (if (empty? items) " /") ">"
-				items
-				"</" tag-name ">"))))
+				"<" tag-name attrs-css
+				(if (empty? items)
+					" />"
+					[">" (map #(if (string? %1) (html-escape %1) %1)) items "</" tag-name ">"])))))
 
 (defmethod print-method Tag [t ^java.io.Writer w]
 	(.write w (str t)))
@@ -66,27 +71,15 @@
 
 (dorun (map declare-tag [
 	'h1 'h2 'h3 'h4 'h5 'h6
-	'b 'i 'u 's 'del 'ins 'small 'sup 'sub 'pre 'q 'cite 'mark
+	'b 'i 'u 's 'del 'ins 'small 'sup 'sub 'pre 'q 'cite 'mark 'dbo
 	'a 'img 'embed 'object 'param
 	'ul 'ol 'li 'dl 'dt 'dd
-	'p 'span 'div 'nav 'br 'canvas 'textarea
+	'p 'span 'div 'nav 'br 'canvas 'textarea 'blockquote
 	; map/area/img.usemap ?
 	'table 'thead 'tbody 'tfoot 'th 'tr 'td 'caption 'colgroup 'col
 	'address 'article 'header 'footer 'main 'section 'aside 'figure 'figcaption
 	'form 'legend 'fieldset 'select 'input 'button
-	'html 'head 'title 'style 'body 'noscript]))
-
-;; Declaring a whole bunch of attributes
-
-(defn declare-attr [sym]
-	(let [attr-key (keyword (.replace (str sym) "-attr" ""))]
-		(eval `(defn ~sym
-			([~'value] (attrs* ~attr-key ~'value))
-			([~'value ~'tag] (attrs+ ~'tag ~attr-key ~'value))))))
-
-(dorun (map declare-attr [
-	'id 'width 'height 'rows 'cols 'href 'src 'alt 'controls
-	'name-attr 'type-attr 'title-attr 'class-attr 'cite-attr]))
+	'html 'head 'title 'style 'base 'body 'noscript]))
 
 ;; Tags with specific features
 
@@ -99,10 +92,6 @@
 (defn track [url kind lang label] (tag* "track" {:src url :kind kind :srclang lang :label label}))
 
 (defn abbr [title & items] (tag* "abbr" {:title title} items))
-
-(defn dbo [dir & items] (tag* "dbo" {:dir dir} items))
-
-(defn blockquote [src & items] (tag* "blockquote" {:cite src} items))
 
 (defn datetime
 	([content] (tag* "time" content))
@@ -124,10 +113,6 @@
 
 (defn hidden-value [id value] (tag* "input" {:id id :value value :type "hidden"}))
 
-(defn base
-	([url] (tag* "base" {:href url}))
-	([url target] (tag* "base" {:href url :target target})))
-
 (defn page-meta [prop value] (tag* "meta" {:name prop :content value}))
 
 (defn page-link [rel url] (tag* "link" {:rel rel :href url}))
@@ -148,10 +133,10 @@
 
 (defn tr-td [& items] (tr (map td (flatten items))))
 
+(defn table-tr-td [& rows] (table (map (fn [row] (tr-td (flatten row))) rows)))
+
 (defn dl-dt-dd [term-map]
 	(dl (mapcat (fn [[t d]] [(dt t) (dd d)]) (sort-by key term-map))))
-
-(defn table-tr-td [& rows] (table (map (fn [row] (tr-td (flatten row))) rows)))
 
 (defn radio-list [param & opts]
 	(mapcat (fn [[t v]] [(label v t) (radio v v param)]) opts))
