@@ -123,14 +123,14 @@ Or a whole list of people:
 When I was trying to think of a way for applying attributes and ad-hoc styling to tags, my first idea was something like this:
 
 ``` clojure
-(color :red (h1 "Hi!"))
+(color :red (h6 "Hi!"))
 ```
 
 ``` html
-<h1 style="color: red">Hi!</h1>
+<h6 style="color: red">Hi!</h6>
 ```
 ---
-<h1 style="color: red">Hi!</h1>
+<h6 style="color: red">Hi!</h6>
 
 ---
 
