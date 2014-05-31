@@ -18,7 +18,7 @@
 				"<" tag-name attrs-css
 				(if (empty? items)
 					" />"
-					[">" (map #(if (string? %1) (html-escape %1) %1)) items "</" tag-name ">"])))))
+					[">" (map #(if (string? %1) (html-escape %1) %1) items) "</" tag-name ">"])))))
 
 (defmethod print-method Tag [t ^java.io.Writer w]
 	(.write w (str t)))
@@ -63,8 +63,6 @@
 	      items (flatten (filter child-item? stuff))]
 		(Tag. nm attrs css items)))
 
-(defn !-- [& content] (str-join "<!-- " content " -->"))
-
 ;; Declaring a whole bunch of tags
 
 (defn declare-tag [sym] (eval `(defn ~sym [& ~'items] (apply tag* ~(str sym) ~'items))))
@@ -82,6 +80,8 @@
 	'html 'head 'title 'style 'base 'body 'noscript]))
 
 ;; Tags with specific features
+
+(defn !-- [& content] (str-join "<!-- " content " -->"))
 
 (defn audio [controls & items] (tag* "audio" {:controls controls} items))
 
