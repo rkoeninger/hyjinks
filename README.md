@@ -16,7 +16,7 @@ Hyjinks is a set of functions that map directly to html tag names. So the code y
 <html><head><title>Welcome Page</title></head><body><h1>Hello, World!</h1></body></html>
 ```
 
-Except unlike other markup languages that translae to HTML (think ASP, JSP), the markup language and the programming language are the same, so code can be freely intermixed:
+Except unlike other markup languages that translate to HTML (think ASP, JSP), the markup language and the programming language are the same, so code can be freely intermixed:
 
 ``` clojure
 (ol (map li ["Mercury" "Venus" "Earth" "Mars" "Jupiter" "Saturn" "Uranus" "Neptune"]))
@@ -140,9 +140,9 @@ But I realized that if you wanted to apply several decorators, it would end up l
 (center (color :red (css-class "welcomeBanner" (h1 "Hi!"))))
 ```
 
-And that could get unweildy.
+And that could get unwieldy.
 
-At the same time, I wanted to have a general `make-tag` method that would accept the tag name, attributes, css properties and child elements and build a tag. But I also thought it would help to allow users to specify them in any order. So the `make-tag` function looks like this:
+At the same time, I wanted to have a general `make-tag` method that would accept the tag name, attributes, CSS properties and child elements and build a tag. But I also thought it would help to allow users to specify them in any order. So the `make-tag` function looks like this:
 
 ``` clojure
 (defn make-tag [name & stuff] ...)
@@ -184,7 +184,9 @@ I can never remember how to center a div in CSS. How do you center a div in hyji
 
 ``` clojure
 (center my-div)
-
+```
+... or ...
+``` clojure
 (div (center) div-contents)
 ```
 
