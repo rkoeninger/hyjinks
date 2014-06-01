@@ -10,6 +10,6 @@
 	(is=str (p {:attr :value} "Content") "<p attr=\"value\">Content</p>")
 	(is=str (ul (map li ["A" "B" "C"])) "<ul><li>A</li><li>B</li><li>C</li></ul>")
 	(is=str (p "<Content>") "<p>&lt;Content&gt;</p>")
-	(is=str (p (tag* "Content")) "<p><Content /></p>")
-	(is=str (div (css* :color :red) (br)) "<div style=\"; color: red;\"><br /></div>")
+	(is=str (p (new-tag "Content")) "<p><Content /></p>")
+	(is=str (div (new-css :color :red) (br)) "<div style=\"; color: red;\"><br /></div>")
 	(is=str (table (hide) (tr (td "A") (td "B"))) "<table style=\"; display: none;\"><tr><td>A</td><td>B</td></tr></table>"))
