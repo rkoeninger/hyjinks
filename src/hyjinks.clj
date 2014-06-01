@@ -1,12 +1,20 @@
 (ns hyjinks)
 
-(require 'clojure.string)
+(use '[clojure.string :only (escape)])
 
 ;; General helpers
 
-(defn- str-join [& items] (apply str (map #(if (keyword? %1) (name %1) %1) (flatten items))))
+(defn- html-escape [s]
+	(if-not (string? s) s (escape s {
+		\< "&lt;"
+		\> "&gt;"
+		\& "&amp;"
+		\" "&quot;"
+		\' "&#39;"})))
 
-(defn- html-escape [s] (clojure.string/escape s {\< "&lt;" \> "&gt;" \& "&amp;" \" "&quot;" \' "&#39;"}))
+(defn- str-k [s] (if (keyword? s) (name s) s))
+
+(defn- str-join [& items] (apply str (map str-k (flatten items))))
 
 ;; Core types
 
@@ -18,10 +26,9 @@
 				"<" tag-name attrs-css
 				(if (empty? items)
 					" />"
-					[">" (map #(if (string? %1) (html-escape %1) %1) items) "</" tag-name ">"])))))
+					[">" (map html-escape items) "</" tag-name ">"])))))
 
-(defmethod print-method Tag [t ^java.io.Writer w]
-	(.write w (str t)))
+(defmethod print-method Tag [t ^java.io.Writer w] (.write w (str t)))
 
 (defrecord Attrs []
 	java.lang.Object
@@ -73,7 +80,6 @@
 	'a 'img 'embed 'object 'param
 	'ul 'ol 'li 'dl 'dt 'dd
 	'p 'span 'div 'nav 'br 'canvas 'textarea 'blockquote
-	; map/area/img.usemap ?
 	'table 'thead 'tbody 'tfoot 'th 'tr 'td 'caption 'colgroup 'col
 	'address 'article 'header 'footer 'main 'section 'aside 'figure 'figcaption
 	'form 'legend 'fieldset 'select 'input 'button
