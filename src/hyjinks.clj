@@ -159,6 +159,14 @@
 ;;     (center some-tag)
 ;;     (color :red some-tag)
 
+(defn declare-decorator [dec-name & props]
+	(let [params (filter symbol? props)
+	      fixedValues (apply merge {} (filter map? props))
+	      args (apply hash-map (apply concat (map (fn [x] [(keyword x) (symbol x)]) params)))]
+		(eval `(defn ~dec-name
+			([~@params] (new-css ~@args))
+			([~@params tag#] (assoc-css tag# ~@args))))))
+
 (defn hide
 	([] (new-css :display "none"))
 	([tag] (assoc-css tag :display "none")))
