@@ -20,7 +20,7 @@
 
 ;; Core types
 
-(defn str-attrs [attrs] (str-join (map (fn [[k v]] [" " k "=\"" v "\""]) attrs)))
+(defn- str-attrs [attrs] (str-join (map (fn [[k v]] [" " k "=\"" v "\""]) attrs)))
 
 (defrecord Tag [tag-name attrs css items]
 	java.lang.Object
@@ -68,12 +68,12 @@
 (dorun (map declare-tag [
 	'h1 'h2 'h3 'h4 'h5 'h6
 	'b 'i 'u 's 'del 'ins 'small 'sup 'sub 'pre 'q 'cite 'mark 'dbo
-	'a 'img 'embed 'object 'param
+	'a 'img 'embed 'object 'param 'iframe
 	'ul 'ol 'li 'dl 'dt 'dd
 	'p 'span 'div 'nav 'br 'canvas 'textarea 'blockquote
 	'table 'thead 'tbody 'tfoot 'th 'tr 'td 'caption 'colgroup 'col
 	'address 'article 'header 'footer 'main 'section 'aside 'figure 'figcaption
-	'form 'legend 'fieldset 'select 'input 'button
+	'form 'legend 'fieldset 'select 'label 'input 'button 'progress
 	'html 'head 'title 'style 'base 'body 'noscript]))
 
 ;; Tags with specific features
@@ -99,16 +99,6 @@
 	([label value] (new-tag "option" {:value value} label)))
 
 (defn optgroup [label & opts] (new-tag "optgroup" {:label label} opts))
-
-(defn iframe [url] (new-tag "iframe" {:src url}))
-
-(defn progress [value maximum] (new-tag "progress" {:value value :max maximum}))
-
-(defn label [target-id text] (new-tag "label" {:for target-id} text))
-
-(defn radio [id value param] (new-tag "input" {:id id :value value :name param :type "radio"}))
-
-(defn hidden-value [id value] (new-tag "input" {:id id :value value :type "hidden"}))
 
 (defn page-meta [prop value] (new-tag "meta" {:name prop :content value}))
 
@@ -136,45 +126,19 @@
 	(dl (mapcat (fn [[t d]] [(dt t) (dd d)]) (sort-by key term-map))))
 
 (defn radio-list [param & opts]
-	(mapcat (fn [[t v]] [(label v t) (radio v v param)]) opts))
-
-;; Common shortcut "tags"
-
-(defn submit-button [] (new-tag "button" {:type "submit"} "Submit"))
-
-(defn reset-button [] (new-tag "button" {:type "reset"} "Reset"))
-
-(defn stylesheet [url] (new-tag "link" {:href url :rel "stylesheet" :media "all" :type "text/css"}))
-
-(defn import-jquery
-	([] (import-jquery "1"))
-	([version] (import-script "javascript"
-		(str "http://ajax.googleapis.com/ajax/libs/jquery/" version "/jquery.min.js"))))
+	(mapcat (fn [[t v]] [(label v {:for t}) (input {:id v :value v :name param :type "radio"})]) opts))
 
 ;; Attribute/CSS Decorators
-;; Each function has a version that can be inserted in a tag's children:
-;;     (div (center) "Contents")
-;;     (p (color :red) "Contents")
-;; And another version that takes an additional argument and decorates it:
-;;     (center some-tag)
-;;     (color :red some-tag)
 
 (defn declare-decorator [dec-name & props]
 	(let [params (filter symbol? props)
-	      fixedValues (apply merge {} (filter map? props))
-	      args (apply hash-map (apply concat (map (fn [x] [(keyword x) (symbol x)]) params)))]
+	      args (apply concat (map (fn [x] [(keyword x) (symbol x)]) params))
+	      fixed (apply concat (apply merge {} (filter map? props)))]
 		(eval `(defn ~dec-name
-			([~@params] (new-css ~@args))
-			([~@params tag#] (assoc-css tag# ~@args))))))
+			([~@params] (new-css ~@args ~@fixed))
+			([~@params ~'tag] (assoc-css ~'tag ~@args ~@fixed))))))
 
-(defn hide
-	([] (new-css :display "none"))
-	([tag] (assoc-css tag :display "none")))
-
-(defn center
-	([] (new-css :margin "0 auto" :text-align "center"))
-	([tag] (assoc-css tag :margin "0 auto" :text-align "center")))
-
-(defn color
-	([color-code] (new-css :color color-code))
-	([color-code tag] (assoc-css tag :color color-code)))
+(dorun (map (partial apply declare-decorator) [
+	['hide {:display "none"}]
+	['center {:margin "0 auto" :text-align "center"}]
+	['color 'color]]))
