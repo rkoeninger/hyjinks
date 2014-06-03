@@ -12,4 +12,12 @@
 	(is=str (p "<Content>") "<p>&lt;Content&gt;</p>")
 	(is=str (p (new-tag "Content")) "<p><Content /></p>")
 	(is=str (div (new-css :color :red) (br)) "<div style=\"; color: red;\"><br /></div>")
-	(is=str (table (hide) (tr (td "A") (td "B"))) "<table style=\"; display: none;\"><tr><td>A</td><td>B</td></tr></table>"))
+	(is=str
+		(table (hide) (tr (td "A") (td "B")))
+		"<table style=\"; display: none;\"><tr><td>A</td><td>B</td></tr></table>")
+
+	; This test is essentially broken as attributes are sorted
+	; by hash function and not in any user-reasonable manner.
+	(is=str
+		(new-tag "asd" {:a 4 :b :d} "qwe" {:q :e :f 4} (new-css :asd "qwe" :dfg :ert) "sdf")
+		"<asd style=\"; asd: qwe; dfg: ert;\" q=\"e\" f=\"4\" b=\"d\" a=\"4\">qwesdf</asd>"))
