@@ -40,15 +40,19 @@
 
 (defmethod print-method Tag [t ^java.io.Writer w] (.write w (str t)))
 
+(defrecord Literal [s] java.lang.Object (toString [_] s))
+
 ;; Builder functions
 
 (def empty-css (Css.))
+
+(defn literal? [x] (instance? Literal x))
 
 (defn tag? [x] (instance? Tag x))
 
 (defn css? [x] (instance? Css x))
 
-(defn attrs? [x] (and (map? x) (not (css? x)) (not (tag? x))))
+(defn attrs? [x] (and (map? x) (not (css? x)) (not (tag? x)) (not (literal? x))))
 
 (defn child-item? [x] (not (or (attrs? x) (css? x))))
 
@@ -79,7 +83,9 @@
 	'form 'legend 'fieldset 'select 'option 'optgroup 'label 'input 'button 'progress
 	'html 'head 'title 'link 'style 'script 'base 'body 'noscript]))
 
-(defn !-- [& content] (str-join "<!-- " content " -->"))
+(defn literal [& content] (Literal. (str-join content)))
+
+(defn !-- [& content] (literal (str-join "<!-- " content " -->")))
 
 (defn media-source [url type] (new-tag "source" {:src url :type type}))
 
