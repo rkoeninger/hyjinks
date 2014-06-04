@@ -1,6 +1,6 @@
 (ns hyjinks)
 
-(use '[clojure.string :only (escape)])
+(use '[clojure.string :only (escape split join)])
 
 ;; General helpers
 
@@ -18,6 +18,10 @@
 			\& "&amp;"
 			\" "&quot;"
 			\' "&#39;"})))
+
+(defn- capitalize [s] (case (= s "") "" (nil? s) nil true (str (Character/toUpperCase (.charAt s 0)) (.substring s 1))))
+
+(defn- readable-string [id] (join " " (map capitalize (split id #"-"))))
 
 ;; Core types
 
@@ -100,6 +104,8 @@
 (defn row-cells [& items] (tr (map td (flatten items))))
 
 (defn table-rows [& rows] (table (map #(row-cells (flatten %)) rows)))
+
+(defn map-table [m] (table (map (fn [[k v]] (tr (td (if (keyword? k) (readable-string (name k)) k)) (td v))) (sort-by key m))))
 
 (defn definitions [term-map]
 	(dl (mapcat (fn [[t d]] [(dt t) (dd d)]) (sort-by key term-map))))
