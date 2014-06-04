@@ -23,6 +23,10 @@
 
 (defn- readable-string [id] (join " " (map capitalize (split id #"-"))))
 
+(defn- $ [f x] (f x))
+
+(defn- $lift [& fs] (fn [xs] (map $ fs xs)))
+
 ;; Core types
 
 (defrecord Css []
@@ -108,7 +112,7 @@
 (defn map-table [m] (table (map (fn [[k v]] (tr (td (if (keyword? k) (readable-string (name k)) k)) (td v))) (sort-by key m))))
 
 (defn definitions [term-map]
-	(dl (mapcat (fn [[t d]] [(dt t) (dd d)]) (sort-by key term-map))))
+	(dl (mapcat ($lift dt dd) (sort-by key term-map))))
 
 (defn radio-list [param & opts]
 	(mapcat (fn [[t v]] [(label v {:for t}) (input {:id v :value v :name param :type "radio"})]) opts))
