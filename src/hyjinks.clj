@@ -1,14 +1,12 @@
 (ns hyjinks)
 
-(use '[clojure.string :only (escape split join)])
+(use '[clojure.string :only (escape split join capitalize lower-case)])
 
 ;; General helpers
 
 (defn- str-k [x] (if (keyword? x) (name x) x))
 
 (defn- str-join [& items] (apply str (map str-k (flatten items))))
-
-(defn- merge-assoc [m k & key-vals] (assoc m k (merge (k m) (apply hash-map key-vals))))
 
 (defn html-escape [s]
 	(if-not (string? s) s
@@ -19,13 +17,9 @@
 			\" "&quot;"
 			\' "&#39;"})))
 
-(defn- capitalize [s] (case (= s "") "" (nil? s) nil true (str (Character/toUpperCase (.charAt s 0)) (.substring s 1))))
-
 (defn- readable-string [id] (if (keyword? id) (join " " (map capitalize (split (name id) #"-"))) id))
 
-(defn- $ [f x] (f x))
-
-(defn- $lift [& fs] (fn [xs] (map $ fs xs)))
+(defn- $lift [& fs] (partial map #(%1 %2) fs))
 
 ;; Core types
 
@@ -54,19 +48,16 @@
 
 (def empty-css (Css.))
 
-(defn literal? [x] (instance? Literal x))
-
-(defn tag? [x] (instance? Tag x))
-
-(defn css? [x] (instance? Css x))
+(dorun (map (fn [sym] (eval `(def ~(symbol (lower-case (str sym "?"))) (partial instance? ~sym)))) [
+	'Literal 'Tag 'Css]))
 
 (defn attrs? [x] (and (map? x) (not (css? x)) (not (tag? x)) (not (literal? x))))
 
 (defn child-item? [x] (not (or (attrs? x) (css? x))))
 
-(defn assoc-attrs [t & key-vals] (apply merge-assoc t :attrs key-vals))
-
-(defn assoc-css [t & key-vals] (apply merge-assoc t :css key-vals))
+(dorun (map (fn [sym] (let [k (keyword sym) sym (symbol (str "assoc-" sym))]
+	(eval `(defn ~sym [~'t & ~'kvs] (assoc ~'t ~k (merge (~k ~'t) (apply hash-map ~'kvs))))))) [
+		'attrs 'css]))
 
 (defn css [& key-vals] (merge empty-css (apply hash-map key-vals)))
 
@@ -109,7 +100,7 @@
 
 (defn table-rows [& rows] (table (map #(row-cells (flatten %)) rows)))
 
-(defn map-table [m] (table (map (fn [[k v]] (tr (td (readable-string k)) (td v))) (sort-by key m))))
+(defn map-table [m] (table (map (comp tr ($lift (comp td readable-string) td)) (sort-by key m))))
 
 (defn definitions [term-map]
 	(dl (mapcat ($lift dt dd) (sort-by key term-map))))
