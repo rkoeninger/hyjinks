@@ -21,7 +21,7 @@
 
 (defn- capitalize [s] (case (= s "") "" (nil? s) nil true (str (Character/toUpperCase (.charAt s 0)) (.substring s 1))))
 
-(defn- readable-string [id] (join " " (map capitalize (split id #"-"))))
+(defn- readable-string [id] (if (keyword? id) (join " " (map capitalize (split (name id) #"-"))) id))
 
 (defn- $ [f x] (f x))
 
@@ -64,13 +64,13 @@
 
 (defn child-item? [x] (not (or (attrs? x) (css? x))))
 
-(defn assoc-attrs [tag & key-vals] (apply merge-assoc tag :attrs key-vals))
+(defn assoc-attrs [t & key-vals] (apply merge-assoc t :attrs key-vals))
 
-(defn assoc-css [tag & key-vals] (apply merge-assoc tag :css key-vals))
+(defn assoc-css [t & key-vals] (apply merge-assoc t :css key-vals))
 
-(defn new-css [& key-vals] (merge empty-css (apply hash-map key-vals)))
+(defn css [& key-vals] (merge empty-css (apply hash-map key-vals)))
 
-(defn new-tag [nm & stuff]
+(defn tag [nm & stuff]
 	(let [attrs (apply merge {} (filter attrs? stuff))
 	      css (apply merge empty-css (filter css? stuff))
 	      items (flatten (filter child-item? stuff))]
@@ -78,7 +78,7 @@
 
 ;; Declaring a whole bunch of tags
 
-(defn declare-tag [sym] (eval `(defn ~sym [& ~'items] (apply new-tag ~(str sym) ~'items))))
+(defn declare-tag [sym] (eval `(defn ~sym [& ~'items] (apply tag ~(str sym) ~'items))))
 
 (dorun (map declare-tag [
 	'h1 'h2 'h3 'h4 'h5 'h6 'hr
@@ -95,9 +95,9 @@
 
 (defn !-- [& content] (literal (str-join "<!-- " content " -->")))
 
-(defn media-source [url type] (new-tag "source" {:src url :type type}))
+(defn media-source [url type] (tag "source" {:src url :type type}))
 
-(defn page-meta [prop value] (new-tag "meta" {:name prop :content value}))
+(defn page-meta [prop value] (tag "meta" {:name prop :content value}))
 
 ;; Higher-order "tags"
 
@@ -109,7 +109,7 @@
 
 (defn table-rows [& rows] (table (map #(row-cells (flatten %)) rows)))
 
-(defn map-table [m] (table (map (fn [[k v]] (tr (td (if (keyword? k) (readable-string (name k)) k)) (td v))) (sort-by key m))))
+(defn map-table [m] (table (map (fn [[k v]] (tr (td (readable-string k)) (td v))) (sort-by key m))))
 
 (defn definitions [term-map]
 	(dl (mapcat ($lift dt dd) (sort-by key term-map))))
@@ -124,8 +124,8 @@
 	      var-args (mapcat #(vector (keyword %) (symbol %)) params)
 	      fix-args (apply concat (apply merge {} (filter map? props)))]
 		(eval `(defn ~sym
-			([~@params] (new-css ~@var-args ~@fix-args))
-			([~@params ~'tag] (assoc-css ~'tag ~@var-args ~@fix-args))))))
+			([~@params] (css ~@var-args ~@fix-args))
+			([~@params ~'t] (assoc-css ~'t ~@var-args ~@fix-args))))))
 
 (dorun (map (partial apply declare-decorator) [
 	['hide {:display "none"}]
