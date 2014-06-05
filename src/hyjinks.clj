@@ -17,7 +17,9 @@
 			\" "&quot;"
 			\' "&#39;"})))
 
-(defn- readable-string [id] (if (keyword? id) (join " " (map capitalize (split (name id) #"-"))) id))
+(defn- readable-string [id]
+	(if-not (keyword? id) id
+		(join " " (map capitalize (split (name id) #"-")))))
 
 (defn- $lift [& fs] (partial map #(%1 %2) fs))
 
@@ -48,16 +50,19 @@
 
 (def empty-css (Css.))
 
-(dorun (map (fn [sym] (eval `(def ~(symbol (lower-case (str sym "?"))) (partial instance? ~sym)))) [
-	'Literal 'Tag 'Css]))
+(def literal? (partial instance? Literal))
+
+(def tag? (partial instance? Tag))
+
+(def css? (partial instance? Css))
 
 (defn attrs? [x] (and (map? x) (not (css? x)) (not (tag? x)) (not (literal? x))))
 
 (defn child-item? [x] (not (or (attrs? x) (css? x))))
 
-(dorun (map (fn [sym] (let [k (keyword sym) sym (symbol (str "assoc-" sym))]
-	(eval `(defn ~sym [~'t & ~'kvs] (assoc ~'t ~k (merge (~k ~'t) (apply hash-map ~'kvs))))))) [
-		'attrs 'css]))
+(defn assoc-attrs [t & key-vals] (assoc t :attrs (merge (:attrs t) (apply hash-map key-vals))))
+
+(defn assoc-css [t & key-vals] (assoc t :css (merge (:css t) (apply hash-map key-vals))))
 
 (defn css [& key-vals] (merge empty-css (apply hash-map key-vals)))
 
@@ -66,6 +71,8 @@
 	      css (apply merge empty-css (filter css? stuff))
 	      items (flatten (filter child-item? stuff))]
 		(Tag. nm attrs css items)))
+
+(defn literal [& content] (Literal. (str-join content)))
 
 ;; Declaring a whole bunch of tags
 
@@ -81,8 +88,6 @@
 	'address 'article 'header 'footer 'main 'section 'aside 'figure 'figcaption
 	'form 'legend 'fieldset 'select 'option 'optgroup 'label 'input 'button 'progress
 	'html 'head 'title 'link 'style 'script 'base 'body 'noscript]))
-
-(defn literal [& content] (Literal. (str-join content)))
 
 (defn !-- [& content] (literal (str-join "<!-- " content " -->")))
 
