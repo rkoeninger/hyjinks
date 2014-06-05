@@ -30,7 +30,8 @@
 	(toString [this]
 		(str-join (map (fn [[k v]] ["; " k ": " v]) this) ";")))
 
-(defn- str-attrs [attrs] (str-join (map (fn [[k v]] [" " k "=\"" (html-escape v) "\""]) attrs)))
+(defn- str-attrs [attrs]
+	(str-join (map (fn [[k v]] [" " k "=\"" (html-escape v) "\""]) attrs)))
 
 (defrecord Tag [tag-name attrs css items]
 	java.lang.Object
@@ -40,7 +41,9 @@
 				"<" tag-name (str-attrs attrs-with-css)
 				(if (empty? items)
 					" />"
-					[">" (map html-escape items) "</" tag-name ">"])))))
+					[">" (map html-escape items) "</" tag-name ">"]))))
+	clojure.lang.IFn
+	(invoke [this] this))
 
 (defmethod print-method Tag [t ^java.io.Writer w] (.write w (str t)))
 
@@ -60,23 +63,31 @@
 
 (defn child-item? [x] (not (or (attrs? x) (css? x))))
 
-(defn assoc-attrs [t & key-vals] (assoc t :attrs (merge (:attrs t) (apply hash-map key-vals))))
+(defn assoc-attrs [t & key-vals]
+	(assoc t :attrs (merge (:attrs t) (apply hash-map key-vals))))
 
-(defn assoc-css [t & key-vals] (assoc t :css (merge (:css t) (apply hash-map key-vals))))
+(defn assoc-css [t & key-vals]
+	(assoc t :css (merge (:css t) (apply hash-map key-vals))))
 
 (defn css [& key-vals] (merge empty-css (apply hash-map key-vals)))
 
-(defn tag [nm & stuff]
+(defn tag [tag-name & stuff]
 	(let [attrs (apply merge {} (filter attrs? stuff))
 	      css (apply merge empty-css (filter css? stuff))
 	      items (flatten (filter child-item? stuff))]
-		(Tag. nm attrs css items)))
+		(Tag. tag-name attrs css items)))
+
+(defn extend-tag [t & stuff]
+	(let [attrs (apply merge (:attrs t) (filter attrs? stuff))
+	      css (apply merge (:css t) (filter css? stuff))
+	      items (concat (:items t) (flatten (filter child-item? stuff)))]
+		(Tag. (:tag-name t) attrs css items)))
 
 (defn literal [& content] (Literal. (str-join content)))
 
 ;; Declaring a whole bunch of tags
 
-(defn declare-tag [sym] (eval `(defn ~sym [& ~'items] (apply tag ~(str sym) ~'items))))
+(defn declare-tag [sym] (eval `(defn ~sym [& x#] (apply tag ~(str sym) x#))))
 
 (dorun (map declare-tag [
 	'h1 'h2 'h3 'h4 'h5 'h6 'hr
@@ -86,7 +97,8 @@
 	'p 'span 'div 'nav 'br 'canvas 'textarea 'blockquote
 	'table 'thead 'tbody 'tfoot 'th 'tr 'td 'caption 'col 'colgroup
 	'address 'article 'header 'footer 'main 'section 'aside 'figure 'figcaption
-	'form 'legend 'fieldset 'select 'option 'optgroup 'label 'input 'button 'progress
+	'form 'legend 'select 'option 'optgroup
+	'fieldset 'label 'input 'button 'progress
 	'html 'head 'title 'link 'style 'script 'base 'body 'noscript]))
 
 (defn !-- [& content] (literal (str-join "<!-- " content " -->")))
@@ -121,7 +133,7 @@
 	      fix-args (apply concat (apply merge {} (filter map? props)))]
 		(eval `(defn ~sym
 			([~@params] (css ~@var-args ~@fix-args))
-			([~@params ~'t] (assoc-css ~'t ~@var-args ~@fix-args))))))
+			([~@params t#] (assoc-css t# ~@var-args ~@fix-args))))))
 
 (dorun (map (partial apply declare-decorator) [
 	['hide {:display "none"}]

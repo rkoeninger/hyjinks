@@ -24,4 +24,7 @@
 	; by hash function and not in any user-reasonable manner.
 	(is=str
 		(tag "asd" {:a 4 :b :d} "qwe" {:q :e :f 4} (css :asd "qwe" :dfg :ert) "sdf")
-		"<asd style=\"; asd: qwe; dfg: ert;\" q=\"e\" f=\"4\" b=\"d\" a=\"4\">qwesdf</asd>"))
+		"<asd style=\"; asd: qwe; dfg: ert;\" q=\"e\" f=\"4\" b=\"d\" a=\"4\">qwesdf</asd>")
+
+	; Self-invocation
+	(is (= (div) ((div)) (((div))))))
