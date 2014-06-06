@@ -149,3 +149,14 @@
 	['hide {:display "none"}]
 	['center {:margin "0 auto" :text-align "center"}]
 	['color 'color]]))
+
+;; Character Entities
+
+(def nbsp (literal "&nbsp;"))
+(def copyright (literal "&copy;"))
+(def registered (literal "&reg;"))
+(def trademark (literal "&trade;"))
+(def euro (literal "&euro;"))
+(def pound (literal "&pound;"))
+(def cent (literal "&cent;"))
+(def yen (literal "&yen;"))
