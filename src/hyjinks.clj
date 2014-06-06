@@ -23,6 +23,10 @@
 
 (defn- $lift [& fs] (partial map #(%1 %2) fs))
 
+;; Forward definitions to resolve circular references
+
+(def extend-tag nil)
+
 ;; Core types
 
 (defrecord Css []
@@ -43,7 +47,13 @@
 					" />"
 					[">" (map html-escape items) "</" tag-name ">"]))))
 	clojure.lang.IFn
-	(invoke [this] this))
+	(invoke [this] this)
+	(invoke [this a] (.applyTo this (list a)))
+	(invoke [this a b] (.applyTo this (list a b)))
+	(invoke [this a b c] (.applyTo this (list a b c)))
+	(invoke [this a b c d] (.applyTo this (list a b c d)))
+	(invoke [this a b c d e] (.applyTo this (list a b c d e)))
+	(applyTo [this args] (apply extend-tag this args)))
 
 (defmethod print-method Tag [t ^java.io.Writer w] (.write w (str t)))
 

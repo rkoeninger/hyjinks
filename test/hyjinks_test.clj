@@ -3,7 +3,7 @@
 (use 'hyjinks)
 (use 'clojure.test)
 
-(defn is=str [x y] (is (= (str x) (str y))))
+(defn is=str [& xs] (is (apply = (map str xs))))
 
 (deftest to-str
 	(is=str (p "Content") "<p>Content</p>")
@@ -26,5 +26,11 @@
 		(tag "asd" {:a 4 :b :d} "qwe" {:q :e :f 4} (css :asd "qwe" :dfg :ert) "sdf")
 		"<asd style=\"; asd: qwe; dfg: ert;\" q=\"e\" f=\"4\" b=\"d\" a=\"4\">qwesdf</asd>")
 
-	; Self-invocation
-	(is (= (div) ((div)) (((div))))))
+	; Unary application should be idempotent
+	(is=str (div) ((div)) (((div))) ((((div)))))
+
+	; Applying tag as function should be same as extend-tag
+	(is=str (extend-tag (div (center)) (color :red)) (div (center) (color :red)))
+	(is=str ((div (center)) (color :red)) (div (center) (color :red)))
+	(def special-div (div {:class "special"} (center)))
+	(is=str (special-div "Hi") (div (center) {:class "special"} "Hi")))
