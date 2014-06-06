@@ -37,23 +37,20 @@
 (defn- str-attrs [attrs]
 	(str-join (map (fn [[k v]] [" " k "=\"" (html-escape v) "\""]) attrs)))
 
-(defrecord Tag [tag-name attrs css items]
+(eval `(defrecord ~'Tag [~'tag-name ~'attrs ~'css ~'items]
 	java.lang.Object
-	(toString [this]
-		(let [attrs-with-css (if (empty? css) attrs (assoc attrs :style (str css)))]
+	(~'toString [_]
+		(let [~'attrs-with-css (if (empty? ~'css) ~'attrs (assoc ~'attrs :style (str ~'css)))]
 			(str-join
-				"<" tag-name (str-attrs attrs-with-css)
-				(if (empty? items)
+				"<" ~'tag-name (str-attrs ~'attrs-with-css)
+				(if (empty? ~'items)
 					" />"
-					[">" (map html-escape items) "</" tag-name ">"]))))
+					[">" (map html-escape ~'items) "</" ~'tag-name ">"]))))
 	clojure.lang.IFn
-	(invoke [this] this)
-	(invoke [this a] (.applyTo this (list a)))
-	(invoke [this a b] (.applyTo this (list a b)))
-	(invoke [this a b c] (.applyTo this (list a b c)))
-	(invoke [this a b c d] (.applyTo this (list a b c d)))
-	(invoke [this a b c d e] (.applyTo this (list a b c d e)))
-	(applyTo [this args] (apply extend-tag this args)))
+	(~'invoke [~'this] ~'this)
+	~@(let [paramses (map (fn [n] (map #(symbol (str "_" %)) (range 0 n))) (range 1 20))]
+		(map (fn [params] `(~'invoke [~'this ~@params] (.applyTo ~'this (list ~@params)))) paramses))
+	(~'applyTo [~'this ~'args] (apply extend-tag ~'this ~'args))))
 
 (defmethod print-method Tag [t ^java.io.Writer w] (.write w (str t)))
 

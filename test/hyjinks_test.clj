@@ -57,4 +57,7 @@
 	(def special-div (div {:class "special"} (center)))
 	(is=str
 		(special-div "Hi")
-		(div (center) {:class "special"} "Hi")))
+		(div (center) {:class "special"} "Hi"))
+
+	; Test tag application with many arguments - up to 20
+	(is=str ((p) "a" "b" "c" "d" "e" "f" "g" "h" "i" "j") "<p>abcdefghij</p>"))
