@@ -27,8 +27,11 @@
 	(is=str
 		(div (css :color :red) (br))
 		"<div style=\"; color: red;\"><br /></div>")
+	
+	; CSS properties can be constants if they don't need arguments
 	(is=str
 		(table (hide) (tr (td "A") (td "B")))
+		(table hide (tr (td "A") (td "B")))
 		"<table style=\"; display: none;\"><tr><td>A</td><td>B</td></tr></table>")
 	(is=str
 		(map-table {:first-name "Rusty" :last-name "Shackelford"})

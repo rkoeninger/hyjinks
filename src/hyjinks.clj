@@ -32,7 +32,11 @@
 (defrecord Css []
 	java.lang.Object
 	(toString [this]
-		(str-join (map (fn [[k v]] ["; " k ": " v]) this) ";")))
+		(str-join (map (fn [[k v]] ["; " k ": " v]) this) ";"))
+	clojure.lang.IFn
+	(invoke [this] this)
+	(invoke [this x] (.applyTo this x))
+	(applyTo [this args] (let [tag (first args)] (tag this))))
 
 (defn- str-attrs [attrs]
 	(str-join (map (fn [[k v]] [" " k "=\"" (html-escape v) "\""]) attrs)))
@@ -116,11 +120,13 @@
 
 ;; Higher-order "tags"
 
-(defn bullet-list [& items] (ul (map li (flatten items))))
+(defn comp-tag [t u] (fn [& items] (t (map u (flatten items)))))
 
-(defn number-list [& items] (ol (map li (flatten items))))
+(def bullet-list (comp-tag ul li))
 
-(defn row-cells [& items] (tr (map td (flatten items))))
+(def number-list (comp-tag ol li))
+
+(def row-cells (comp-tag tr td))
 
 (defn table-rows [& rows] (table (map #(row-cells (flatten %)) rows)))
 
@@ -138,9 +144,11 @@
 	(let [params (filter symbol? props)
 	      var-args (mapcat #(vector (keyword %) (symbol %)) params)
 	      fix-args (apply concat (apply merge {} (filter map? props)))]
-		(eval `(defn ~sym
-			([~@params] (css ~@var-args ~@fix-args))
-			([~@params t#] (assoc-css t# ~@var-args ~@fix-args))))))
+		(eval (if (empty? params)
+			`(def ~sym (css ~@fix-args))
+			`(defn ~sym
+				([~@params] (css ~@var-args ~@fix-args))
+				([~@params t#] (assoc-css t# ~@var-args ~@fix-args)))))))
 
 (dorun (map (partial apply declare-decorator) [
 	['hide {:display "none"}]
