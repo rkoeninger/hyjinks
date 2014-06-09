@@ -28,6 +28,9 @@
 		(div (css :color :red) (br))
 		"<div style=\"; color: red;\"><br /></div>")
 	
+	; Tag can just be a constant if it doesn't need arguments
+	(is=str (br) br)
+
 	; CSS properties can be constants if they don't need arguments
 	(is=str
 		(table (hide) (tr (td "A") (td "B")))

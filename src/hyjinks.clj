@@ -98,7 +98,7 @@
 
 ;; Declaring a whole bunch of tags
 
-(defn declare-tag [sym] (eval `(defn ~sym [& x#] (apply tag ~(str sym) x#))))
+(defn declare-tag [sym] (eval `(def ~sym (tag ~(str sym)))))
 
 (dorun (map declare-tag [
 	'h1 'h2 'h3 'h4 'h5 'h6 'hr
