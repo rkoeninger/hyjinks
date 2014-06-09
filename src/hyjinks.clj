@@ -38,6 +38,9 @@
 
 ;; Core types
 
+(defn- str-attrs [attrs]
+	(str-join (map (fn [[k v]] [" " k "=\"" (html-escape v) "\""]) attrs)))
+
 (defrecord Css []
 	java.lang.Object
 	(toString [this]
@@ -46,9 +49,6 @@
 	(invoke [this] this)
 	(invoke [this x] (.applyTo this x))
 	(applyTo [this args] (let [tag (first args)] (tag this))))
-
-(defn- str-attrs [attrs]
-	(str-join (map (fn [[k v]] [" " k "=\"" (html-escape v) "\""]) attrs)))
 
 (impl-invoke (defrecord Tag [tag-name attrs css items]
 	java.lang.Object
@@ -62,9 +62,13 @@
 	clojure.lang.IFn
 	(applyTo [this args] (apply extend-tag this args))))
 
+(defrecord Literal [s] java.lang.Object (toString [_] s))
+
+(defmethod print-method Css [c ^java.io.Writer w] (.write w (str c)))
+
 (defmethod print-method Tag [t ^java.io.Writer w] (.write w (str t)))
 
-(defrecord Literal [s] java.lang.Object (toString [_] s))
+(defmethod print-method Literal [l ^java.io.Writer w] (.write w (str l)))
 
 ;; Builder functions
 
