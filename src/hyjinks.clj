@@ -23,6 +23,15 @@
 
 (defn- $lift [& fs] (partial map #(%1 %2) fs))
 
+(defmacro impl-invoke [record]
+	(let [parted-record (partition-by #(= % 'clojure.lang.IFn) record)
+	      paramses (map (fn [n] (map #(symbol (str "_" %)) (range 0 n))) (range 0 21))]
+		(concat
+			(apply concat (take 2 parted-record))
+			(map (fn [params] `(~'invoke [~'this ~@params] (.applyTo ~'this (list ~@params)))) paramses)
+			(list `(~'invoke [~'this ~@(last paramses) ~'more] (.applyTo ~'this (concat (list ~@(last paramses)) ~'more))))
+			(apply concat (drop 2 parted-record)))))
+
 ;; Forward definitions to resolve circular references
 
 (def extend-tag nil)
@@ -41,22 +50,17 @@
 (defn- str-attrs [attrs]
 	(str-join (map (fn [[k v]] [" " k "=\"" (html-escape v) "\""]) attrs)))
 
-(eval `(defrecord ~'Tag [~'tag-name ~'attrs ~'css ~'items]
+(impl-invoke (defrecord Tag [tag-name attrs css items]
 	java.lang.Object
-	(~'toString [_]
-		(let [~'attrs-with-css (if (empty? ~'css) ~'attrs (assoc ~'attrs :style (str ~'css)))]
+	(toString [_]
+		(let [attrs-with-css (if (empty? css) attrs (assoc attrs :style (str css)))]
 			(str-join
-				"<" ~'tag-name (str-attrs ~'attrs-with-css)
-				(if (empty? ~'items)
+				"<" tag-name (str-attrs attrs-with-css)
+				(if (empty? items)
 					" />"
-					[">" (map html-escape ~'items) "</" ~'tag-name ">"]))))
+					[">" (map html-escape items) "</" tag-name ">"]))))
 	clojure.lang.IFn
-	(~'invoke [~'this] ~'this)
-	~@(let [paramses (map (fn [n] (map #(symbol (str "_" %)) (range 0 n))) (range 1 20))]
-		(map (fn [params] `(~'invoke [~'this ~@params] (.applyTo ~'this (list ~@params)))) paramses))
-	~(let [params (map #(symbol (str "_" %)) (range 0 20))]
-		`(~'invoke [~'this ~@params ~'more] (.applyTo ~'this (concat (list ~@params) ~'more))))
-	(~'applyTo [~'this ~'args] (apply extend-tag ~'this ~'args))))
+	(applyTo [this args] (apply extend-tag this args))))
 
 (defmethod print-method Tag [t ^java.io.Writer w] (.write w (str t)))
 
@@ -91,10 +95,12 @@
 		(Tag. tag-name attrs css items)))
 
 (defn extend-tag [t & stuff]
-	(let [attrs (apply merge (:attrs t) (filter attrs? stuff))
-	      css (apply merge (:css t) (filter css? stuff))
-	      items (concat (:items t) (flatten (filter child-item? stuff)))]
-		(Tag. (:tag-name t) attrs css items)))
+	(if (empty? stuff)
+		t
+		(let [attrs (apply merge (:attrs t) (filter attrs? stuff))
+		      css (apply merge (:css t) (filter css? stuff))
+		      items (concat (:items t) (flatten (filter child-item? stuff)))]
+			(Tag. (:tag-name t) attrs css items))))
 
 (defn literal [& content] (Literal. (str-join content)))
 
