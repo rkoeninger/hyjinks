@@ -27,6 +27,7 @@
 	(is=str
 		(div (css :color :red) (br))
 		"<div style=\"; color: red;\"><br /></div>")
+	(is=str (p) (p "") (p nil) (p "" nil))
 	
 	; Tag can just be a constant if it doesn't need arguments
 	(is=str (br) br)

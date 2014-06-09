@@ -72,7 +72,7 @@
 
 (defn attrs? [x] (and (map? x) (not (css? x)) (not (tag? x)) (not (literal? x))))
 
-(defn child-item? [x] (not (or (attrs? x) (css? x))))
+(defn child-item? [x] (not (or (attrs? x) (css? x) (nil? x) (= "" x))))
 
 (defn assoc-attrs [t & key-vals]
 	(assoc t :attrs (merge (:attrs t) (apply hash-map key-vals))))
