@@ -54,6 +54,8 @@
 	(~'invoke [~'this] ~'this)
 	~@(let [paramses (map (fn [n] (map #(symbol (str "_" %)) (range 0 n))) (range 1 20))]
 		(map (fn [params] `(~'invoke [~'this ~@params] (.applyTo ~'this (list ~@params)))) paramses))
+	~(let [params (map #(symbol (str "_" %)) (range 0 20))]
+		`(~'invoke [~'this ~@params ~'more] (.applyTo ~'this (concat (list ~@params) ~'more))))
 	(~'applyTo [~'this ~'args] (apply extend-tag ~'this ~'args))))
 
 (defmethod print-method Tag [t ^java.io.Writer w] (.write w (str t)))

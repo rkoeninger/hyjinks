@@ -47,8 +47,9 @@
 		(tag "asd" {:a 4 :b :d} "qwe" {:q :e :f 4} (css :asd "qwe" :dfg :ert) "sdf")
 		"<asd style=\"; asd: qwe; dfg: ert;\" q=\"e\" f=\"4\" b=\"d\" a=\"4\">qwesdf</asd>")
 
-	; Unary application should be idempotent
+	; Unary application should be idempotent - and equal to unapplied tag
 	(is=str
+		div
 		(div)
 		((div))
 		(((div)))
@@ -67,4 +68,15 @@
 		(div (center) {:class "special"} "Hi"))
 
 	; Test tag application with many arguments - up to 20
-	(is=str ((p) "a" "b" "c" "d" "e" "f" "g" "h" "i" "j") "<p>abcdefghij</p>"))
+	(is=str
+		(p "a" "b" "c" "d" "e" "f" "g" "h" "i" "j")
+		(apply p ["a" "b" "c" "d" "e" "f" "g" "h" "i" "j"])
+		(p ["a" "b" "c" "d" "e" "f" "g" "h" "i" "j"])
+		"<p>abcdefghij</p>")
+
+	; Test tag application with many arguments - over 20
+	(is=str
+		(p "a" "b" "c" "d" "e" "f" "g" "h" "i" "j" "k" "l" "m" "n" "o" "p" "q" "r" "s" "t" "u" "v" "w" "x" "y" "z")
+		(apply p ["a" "b" "c" "d" "e" "f" "g" "h" "i" "j" "k" "l" "m" "n" "o" "p" "q" "r" "s" "t" "u" "v" "w" "x" "y" "z"])
+		(p ["a" "b" "c" "d" "e" "f" "g" "h" "i" "j" "k" "l" "m" "n" "o" "p" "q" "r" "s" "t" "u" "v" "w" "x" "y" "z"])
+		"<p>abcdefghijklmnopqrstuvwxyz</p>"))
