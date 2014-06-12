@@ -33,6 +33,7 @@
 	(is=str (br) br)
 
 	; CSS properties can be constants if they don't need arguments
+	; And can be used as functions
 	(is=str
 		(table (hide) (tr (td "A") (td "B")))
 		(table hide (tr (td "A") (td "B")))
@@ -41,6 +42,14 @@
 	(is=str
 		(map-table {:first-name "Rusty" :last-name "Shackelford"})
 		"<table><tr><td>First Name</td><td>Rusty</td></tr><tr><td>Last Name</td><td>Shackelford</td></tr></table>")
+
+	; Some decorators are variadic and take a Tag as the optional last argument
+	(is=str
+		(transform (rotate 45) (skew 10 15) div)
+		(div (transform (rotate 45) (skew 10 15))))
+
+	; But Tags shouldn't be anywhere else
+	(is (thrown? java.lang.AssertionError (transform (rotate 45) div (skew 10 15))))
 
 	; This test is essentially broken as attributes are sorted
 	; by hash function and not in any user-reasonable manner.

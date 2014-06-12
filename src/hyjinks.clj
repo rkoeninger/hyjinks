@@ -32,6 +32,8 @@
 			(list `(~'invoke [~'this ~@(last paramses) ~'more] (.applyTo ~'this (concat (list ~@(last paramses)) ~'more))))
 			(apply concat (drop 2 parted-record)))))
 
+(defn none [pred & xs] (not (apply some pred xs)))
+
 ;; Forward definitions to resolve circular references
 
 (def extend-tag nil)
@@ -63,6 +65,10 @@
 	(applyTo [this args] (apply extend-tag this args))))
 
 (defrecord Literal [s] java.lang.Object (toString [_] s))
+
+(impl-invoke (defrecord IFnString [s]
+	java.lang.Object (toString [_] s)
+	clojure.lang.IFn (applyTo [this args] (join " " (conj args this)))))
 
 (defmethod print-method Css [c ^java.io.Writer w] (.write w (str c)))
 
@@ -166,12 +172,27 @@
 
 (defdecorator transition [x] (:-webkit-transition x :-moz-transition x :transition x))
 
-(defdecorator transform [x] (:-webkit-transform x :-moz-transform x :-ms-transform x :-o-transform x :transform x))
-
 (defdecorator linear-gradient [d c1 c2] (
 	:background-color c1
 	:background-image (format "-webkit-linear-gradient(%s, %s, %s)" d c1 c2)
 	:background-image (format "-linear-gradient(%s, %s, %s)" d c1 c2)))
+
+(defn transform [& xs]
+	(assert (or (< (count xs) 1) (none tag? (butlast xs))))
+	(let [l (last xs)
+	      t (if (tag? l) l)
+	      xs (if (nil? t) xs (butlast xs))
+	      x (join " " xs)
+	      c (css :-webkit-transform x :-moz-transform x :-ms-transform x :-o-transform x :transform x)]
+		(if (nil? t) c (c t))))
+
+;; CSS Value Builders
+
+(defn- make-angle [x] (if (number? x) (str x "deg") x))
+
+(defn rotate [angle] (format "rotate(%s)" (str-k (make-angle angle))))
+
+(defn skew [x-angle y-angle] (format "skew(%s, %s)" (str-k (make-angle x-angle)) (str-k (make-angle y-angle))))
 
 ;; Character Entities
 
