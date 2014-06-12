@@ -36,6 +36,7 @@
 	(is=str
 		(table (hide) (tr (td "A") (td "B")))
 		(table hide (tr (td "A") (td "B")))
+		(hide (table (tr (td "A") (td "B"))))
 		"<table style=\"; display: none;\"><tr><td>A</td><td>B</td></tr></table>")
 	(is=str
 		(map-table {:first-name "Rusty" :last-name "Shackelford"})

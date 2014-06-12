@@ -47,7 +47,7 @@
 		(str-join (map (fn [[k v]] ["; " k ": " v]) this) ";"))
 	clojure.lang.IFn
 	(invoke [this] this)
-	(invoke [this x] (.applyTo this x))
+	(invoke [this x] (.applyTo this (list x)))
 	(applyTo [this args] (let [tag (first args)] (tag this))))
 
 (impl-invoke (defrecord Tag [tag-name attrs css items]
@@ -160,7 +160,7 @@
 			`(def ~sym (css ~@fix-args))
 			`(defn ~sym
 				([~@params] (css ~@var-args ~@fix-args))
-				([~@params t#] (assoc-css t# ~@var-args ~@fix-args)))))))
+				([~@params ~'t] (assoc-css ~'t ~@var-args ~@fix-args)))))))
 
 (dorun (map (partial apply declare-decorator) [
 	['hide {:display "none"}]
