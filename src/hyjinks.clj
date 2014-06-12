@@ -152,20 +152,26 @@
 
 ;; Decorators
 
-(defn declare-decorator [sym & props]
-	(let [params (filter symbol? props)
-	      var-args (mapcat #(vector (keyword %) (symbol %)) params)
-	      fix-args (apply concat (apply merge {} (filter map? props)))]
-		(eval (if (empty? params)
-			`(def ~sym (css ~@fix-args))
-			`(defn ~sym
-				([~@params] (css ~@var-args ~@fix-args))
-				([~@params ~'t] (assoc-css ~'t ~@var-args ~@fix-args)))))))
+(defmacro defdecorator
+	([sym body]
+		`(def ~sym (css ~@body)))
+	([sym arglist body]
+		`(defn ~sym (~arglist (css ~@body)) ([~@arglist ~'t] ((~sym ~@arglist) ~'t)))))
 
-(dorun (map (partial apply declare-decorator) [
-	['hide {:display "none"}]
-	['center {:margin "0 auto" :text-align "center"}]
-	['color 'color]]))
+(defdecorator hide (:display "none"))
+
+(defdecorator center (:margin "0 auto" :text-align "center"))
+
+(defdecorator color [c] (:color c))
+
+(defdecorator transition [x] (:-webkit-transition x :-moz-transition x :transition x))
+
+(defdecorator transform [x] (:-webkit-transform x :-moz-transform x :-ms-transform x :-o-transform x :transform x))
+
+(defdecorator linear-gradient [d c1 c2] (
+	:background-color c1
+	:background-image (format "-webkit-linear-gradient(%s, %s, %s)" d c1 c2)
+	:background-image (format "-linear-gradient(%s, %s, %s)" d c1 c2)))
 
 ;; Character Entities
 
