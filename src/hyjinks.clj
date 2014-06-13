@@ -158,15 +158,8 @@
 
 ;; Decorators
 
-(defmacro defdecorator
-	([sym body]
-		`(def ~sym (css ~@body)))
-	([sym arglist body]
-		`(defn ~sym (~arglist (css ~@body)) ([~@arglist ~'t] ((~sym ~@arglist) ~'t)))))
-
-(defdecorator hide (:display "none"))
-
-(defdecorator center (:margin "0 auto" :text-align "center"))
+(defmacro defdecorator [sym arglist body]
+	`(defn ~sym (~arglist (css ~@body)) ([~@arglist ~'t] ((~sym ~@arglist) ~'t))))
 
 (defdecorator color [c] (:color c))
 
@@ -176,6 +169,10 @@
 	:background-color c1
 	:background-image (format "-webkit-linear-gradient(%s, %s, %s)" d c1 c2)
 	:background-image (format "-linear-gradient(%s, %s, %s)" d c1 c2)))
+
+(def hide (css :display "none"))
+
+(def center (css :margin "0 auto" :text-align "center"))
 
 (defn transform [& xs]
 	(assert (or (< (count xs) 1) (none tag? (butlast xs))))
@@ -188,11 +185,38 @@
 
 ;; CSS Value Builders
 
-(defn- make-angle [x] (if (number? x) (str x "deg") x))
+(defn px [x] (str x "px"))
 
-(defn rotate [angle] (format "rotate(%s)" (str-k (make-angle angle))))
+(defn- ang [x] (if (number? x) (str x "deg") (str-k x)))
 
-(defn skew [x-angle y-angle] (format "skew(%s, %s)" (str-k (make-angle x-angle)) (str-k (make-angle y-angle))))
+(defmacro defcssval [id & args]
+	(let [prepare-arg (fn [arg] (if (.contains (name arg) "angle") `(ang ~arg) `(str-k ~arg)))
+	      format-str (str (name id) "(" (join ", " (repeat (count args) "%s")) ")")]
+		`(defn ~id [~@args] (format ~format-str ~@(map prepare-arg args)))))
+
+; Used for: transform
+
+(defcssval matrix a b c d e f)
+(defcssval matrix3d a b c d e f g h i j k l m n o p)
+(defcssval translate x y)
+(defcssval translate3d x y z)
+(defcssval translateX x)
+(defcssval translateY y)
+(defcssval translateZ z)
+(defcssval scale x y)
+(defcssval scale3d x y z)
+(defcssval scaleX x)
+(defcssval scaleY y)
+(defcssval scaleZ z)
+(defcssval rotate angle)
+(defcssval rotate3d x y z angle)
+(defcssval rotateX angle)
+(defcssval rotateY angle)
+(defcssval rotateZ angle)
+(defcssval skew x-angle y-angle)
+(defcssval skewX angle)
+(defcssval skewY angle)
+(defcssval perspective n)
 
 ;; Character Entities
 
