@@ -41,8 +41,14 @@
 
 ;; Core types
 
-(defn- str-attrs [attrs]
-	(str-join (map (fn [[k v]] [" " k "=\"" (html-escape v) "\""]) attrs)))
+(defrecord Attrs []
+	java.lang.Object
+	(toString [this]
+		(str-join (map (fn [[k v]] [" " k "=\"" (html-escape v) "\""]) this)))
+	clojure.lang.IFn
+	(invoke [this] this)
+	(invoke [this x] (.applyTo this (list x)))
+	(applyTo [this args] (let [t (first args)] (t this))))
 
 (defrecord Css []
 	java.lang.Object
@@ -51,14 +57,14 @@
 	clojure.lang.IFn
 	(invoke [this] this)
 	(invoke [this x] (.applyTo this (list x)))
-	(applyTo [this args] (let [tag (first args)] (tag this))))
+	(applyTo [this args] (let [t (first args)] (t this))))
 
 (defrecord-ifn Tag [tag-name attrs css items]
 	java.lang.Object
 	(toString [_]
 		(let [attrs-with-css (if (empty? css) attrs (assoc attrs :style (str css)))]
 			(str-join
-				"<" tag-name (str-attrs attrs-with-css)
+				"<" tag-name attrs-with-css
 				(if (empty? items)
 					" />"
 					[">" (map html-escape items) "</" tag-name ">"]))))
@@ -66,6 +72,8 @@
 	(applyTo [this args] (apply extend-tag this args)))
 
 (defrecord Literal [s] java.lang.Object (toString [_] s))
+
+(defmethod print-method Attrs [a ^java.io.Writer w] (.write w (str a)))
 
 (defmethod print-method Css [c ^java.io.Writer w] (.write w (str c)))
 
@@ -75,6 +83,8 @@
 
 ;; Builder functions
 
+(def empty-attrs (Attrs.))
+
 (def empty-css (Css.))
 
 (def literal? (partial instance? Literal))
@@ -83,9 +93,11 @@
 
 (def css? (partial instance? Css))
 
-(defn attrs? [x] (and (map? x) (not (css? x)) (not (tag? x)) (not (literal? x))))
+(def attrs? (partial instance? Attrs))
 
-(defn child-item? [x] (not (or (attrs? x) (css? x) (nil? x) (= "" x))))
+(defn attrs-or-map? [x] (or (attrs? x) (and (map? x) (not (css? x)) (not (tag? x)) (not (literal? x)))))
+
+(defn child-item? [x] (not (or (attrs-or-map? x) (css? x) (nil? x) (= "" x))))
 
 (defn assoc-attrs [t & key-vals]
 	(assoc t :attrs (merge (:attrs t) (apply hash-map key-vals))))
@@ -96,7 +108,7 @@
 (defn css [& key-vals] (merge empty-css (apply hash-map key-vals)))
 
 (defn tag [tag-name & stuff]
-	(let [attrs (apply merge {} (filter attrs? stuff))
+	(let [attrs (apply merge empty-attrs (filter attrs-or-map? stuff))
 	      css (apply merge empty-css (filter css? stuff))
 	      items (flatten (filter child-item? stuff))]
 		(Tag. tag-name attrs css items)))
@@ -104,7 +116,7 @@
 (defn extend-tag [t & stuff]
 	(if (empty? stuff)
 		t
-		(let [attrs (apply merge (:attrs t) (filter attrs? stuff))
+		(let [attrs (apply merge (:attrs t) (filter attrs-or-map? stuff))
 		      css (apply merge (:css t) (filter css? stuff))
 		      items (concat (:items t) (flatten (filter child-item? stuff)))]
 			(Tag. (:tag-name t) attrs css items))))
@@ -153,13 +165,15 @@
 (defn radio-list [param & opts]
 	(mapcat (fn [[t v]] [(label v {:for t}) (input {:id v :value v :name param :type "radio"})]) opts))
 
-;; CSS Value Builders
+;; CSS Units
 
 (defmacro defunit [suffix] `(defn ~suffix [~'x] (if (number? ~'x) (str ~'x ~(name suffix)) (str-k ~'x))))
 
 (defunit px)
 (defunit deg)
 (defunit %)
+
+;; CSS Value Builders
 
 (defmacro defcssval [id & args]
 	(let [prepare-arg (fn [arg] (if (.contains (name arg) "angle") `(deg ~arg) `(str-k ~arg)))
