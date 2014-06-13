@@ -3,34 +3,66 @@
 (use 'hyjinks)
 (use 'clojure.test)
 
-(defn is=str [& xs] (is (apply = (map str xs))))
+(defn is=str
+	"Asserts that all values in `xs` have equivalent `str` values"
+	[& xs] (is (apply = (map str xs))))
 
-(deftest to-str
+(defmacro should-fail [expr]
+	`(try ~expr false (catch java.lang.AssertionError e# true)))
+
+(deftest feature-tour
+
+	; Each tag has a function named for it
 	(is=str
 		(p "Content")
 		"<p>Content</p>")
 	(is=str
+		(ol (li "Monday") (li "Tuesday") (li "Wednesday"))
+		"<ol><li>Monday</li><li>Tuesday</li><li>Wednesday</li></ol>")
+
+	; Tag attributes can be specified with hash-maps
+	(is=str
 		(p {:attr :value} "Content")
 		"<p attr=\"value\">Content</p>")
+
+	; Tags can be composed like normal functions
 	(is=str
 		(ul (map li ["A" "B" "C"]))
 		"<ul><li>A</li><li>B</li><li>C</li></ul>")
+
+	; String content gets escaped, unless it's a literal
 	(is=str
 		(p "<Content>")
 		"<p>&lt;Content&gt;</p>")
 	(is=str
 		(p (literal "<Content>"))
 		"<p><Content></p>")
+
+	; Empty tags have trailing '/' for XHTML compliance
 	(is=str
 		(p (tag "Content"))
 		"<p><Content /></p>")
+
+	; CSS can be applied with a CSS object
 	(is=str
 		(div (css :color :red) (br))
 		"<div style=\"; color: red;\"><br /></div>")
-	(is=str (p) (p "") (p nil) (p "" nil))
+
+	; Empty strings and nil get ignored
+	(is=str
+		(p)
+		(p "")
+		(p nil)
+		(p "" nil))
+	(is=str
+		(div "A" "" nil "B" "")
+		(div nil nil "A" "B" ""))
 	
 	; Tag can just be a constant if it doesn't need arguments
-	(is=str (br) br)
+	(is=str
+		(br)
+		br
+		"<br />")
 
 	; CSS properties can be constants if they don't need arguments
 	; And can be used as functions
@@ -49,7 +81,7 @@
 		(div (transform (rotate 45) (skew 10 15))))
 
 	; But Tags shouldn't be anywhere else
-	(is (thrown? java.lang.AssertionError (transform (rotate 45) div (skew 10 15))))
+	(should-fail (transform (rotate 45) div (skew 10 15)))
 
 	; This test is essentially broken as attributes are sorted
 	; by hash function and not in any user-reasonable manner.
@@ -72,6 +104,8 @@
 	(is=str
 		((div (center)) (color :red))
 		(div (center) (color :red)))
+
+	; This allows for easy specialization of tags
 	(def special-div (div {:class "special"} (center)))
 	(is=str
 		(special-div "Hi")
