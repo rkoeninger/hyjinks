@@ -156,41 +156,16 @@
 (defn radio-list [param & opts]
 	(mapcat (fn [[t v]] [(label v {:for t}) (input {:id v :value v :name param :type "radio"})]) opts))
 
-;; Decorators
-
-(defmacro defdecorator [sym arglist body]
-	`(defn ~sym (~arglist (css ~@body)) ([~@arglist ~'t] ((~sym ~@arglist) ~'t))))
-
-(defdecorator color [c] (:color c))
-
-(defdecorator transition [x] (:-webkit-transition x :-moz-transition x :transition x))
-
-(defdecorator linear-gradient [d c1 c2] (
-	:background-color c1
-	:background-image (format "-webkit-linear-gradient(%s, %s, %s)" d c1 c2)
-	:background-image (format "-linear-gradient(%s, %s, %s)" d c1 c2)))
-
-(def hide (css :display "none"))
-
-(def center (css :margin "0 auto" :text-align "center"))
-
-(defn transform [& xs]
-	(assert (or (< (count xs) 1) (none tag? (butlast xs))))
-	(let [l (last xs)
-	      t (if (tag? l) l)
-	      xs (if (nil? t) xs (butlast xs))
-	      x (join " " xs)
-	      c (css :-webkit-transform x :-moz-transform x :-ms-transform x :-o-transform x :transform x)]
-		(if (nil? t) c (c t))))
-
 ;; CSS Value Builders
 
-(defn px [x] (str x "px"))
+(defmacro defunit [suffix] `(defn ~suffix [~'x] (if (number? ~'x) (str ~'x ~(name suffix)) (str-k ~'x))))
 
-(defn- ang [x] (if (number? x) (str x "deg") (str-k x)))
+(defunit px)
+(defunit deg)
+(defunit %)
 
 (defmacro defcssval [id & args]
-	(let [prepare-arg (fn [arg] (if (.contains (name arg) "angle") `(ang ~arg) `(str-k ~arg)))
+	(let [prepare-arg (fn [arg] (if (.contains (name arg) "angle") `(deg ~arg) `(str-k ~arg)))
 	      format-str (str (name id) "(" (join ", " (repeat (count args) "%s")) ")")]
 		`(defn ~id [~@args] (format ~format-str ~@(map prepare-arg args)))))
 
@@ -217,6 +192,51 @@
 (defcssval skewX angle)
 (defcssval skewY angle)
 (defcssval perspective n)
+
+; Used for: transition-timing-function
+
+(defcssval cubic-bezier a b c d)
+
+; Used for: linear-gradient
+
+(defcssval -webkit-linear-gradient d c1 c2)
+(defcssval linear-gradient d c1 c2)
+
+;; Decorators
+
+(defmacro defdecorator [sym arglist body]
+	`(defn ~sym (~arglist (css ~@body)) ([~@arglist ~'t] ((~sym ~@arglist) ~'t))))
+
+(defdecorator color [c] (:color c))
+
+(defdecorator transition [x] (:-webkit-transition x :-moz-transition x :transition x))
+
+(defdecorator transition-timing-function [x] (:transition-timing-function x :-webkit-transition-timing-function x))
+
+(defdecorator transition-delay [x] (:transition-delay x :-webkit-transition-delay x))
+
+(defdecorator transition-duration [x] (:transition-duration x :-webkit-transition-duration x))
+
+(defdecorator transition-property [x] (:transition-property x :-moz-transition-property x :-webkit-transition-property x :-o-transition-property x))
+
+; linear-gradient
+(defdecorator gradient [d c1 c2] (
+	:background-color c1
+	:background-image (linear-gradient d c1 c2)
+	:background-image (-webkit-linear-gradient d c1 c2)))
+
+(def hide (css :display "none"))
+
+(def center (css :margin "0 auto" :text-align "center"))
+
+(defn transform [& xs]
+	(assert (or (< (count xs) 1) (none tag? (butlast xs))))
+	(let [l (last xs)
+	      t (if (tag? l) l)
+	      xs (if (nil? t) xs (butlast xs))
+	      x (join " " xs)
+	      c (css :-webkit-transform x :-moz-transform x :-ms-transform x :-o-transform x :transform x)]
+		(if (nil? t) c (c t))))
 
 ;; Character Entities
 
