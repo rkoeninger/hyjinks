@@ -73,13 +73,14 @@
 
 (defrecord Literal [s] java.lang.Object (toString [_] s))
 
-(defmethod print-method Attrs [a ^java.io.Writer w] (.write w (str a)))
+;; Define REPL print methods
 
-(defmethod print-method Css [c ^java.io.Writer w] (.write w (str c)))
+(defmacro defprint [type] `(defmethod print-method ~type [x# ^java.io.Writer w#] (.write w# (str x#))))
 
-(defmethod print-method Tag [t ^java.io.Writer w] (.write w (str t)))
-
-(defmethod print-method Literal [l ^java.io.Writer w] (.write w (str l)))
+(defprint Attrs)
+(defprint Css)
+(defprint Tag)
+(defprint Literal)
 
 ;; Builder functions
 
