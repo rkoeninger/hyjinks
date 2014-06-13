@@ -66,10 +66,6 @@
 
 (defrecord Literal [s] java.lang.Object (toString [_] s))
 
-(impl-invoke (defrecord IFnString [s]
-	java.lang.Object (toString [_] s)
-	clojure.lang.IFn (applyTo [this args] (join " " (conj args this)))))
-
 (defmethod print-method Css [c ^java.io.Writer w] (.write w (str c)))
 
 (defmethod print-method Tag [t ^java.io.Writer w] (.write w (str t)))
@@ -240,11 +236,15 @@
 
 ;; Character Entities
 
-(def nbsp (literal "&nbsp;"))
-(def copyright (literal "&copy;"))
-(def registered (literal "&reg;"))
-(def trademark (literal "&trade;"))
-(def euro (literal "&euro;"))
-(def pound (literal "&pound;"))
-(def cent (literal "&cent;"))
-(def yen (literal "&yen;"))
+(defmacro defentity
+	([id] `(def ~id (literal ~(str "&" (name id) ";"))))
+	([id value] `(def ~id (literal ~(str "&" (name value) ";")))))
+
+(defentity nbsp)
+(defentity copyright copy)
+(defentity registered reg)
+(defentity trademark trade)
+(defentity euro)
+(defentity pound)
+(defentity cent)
+(defentity yen)
