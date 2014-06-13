@@ -74,7 +74,7 @@ Which can be used like this:
 (person-summary {
   :first-name "Rusty"
   :last-name "Shackelford"
-  :age 42
+  :age 61
   :image-url "https://pbs.twimg.com/profile_images/1747118742/Rusty_Shackleford.jpg"})
 ```
 
@@ -84,7 +84,7 @@ Which can be used like this:
   <table>
     <tr><td>First Name</td><td>Rusty</td></tr>
     <tr><td>Last Name</td><td>Shackelford</td></tr>
-    <tr><td>Age</td><td>42</td></tr>
+    <tr><td>Age</td><td>61</td></tr>
   </table>
 </div>
 ```
@@ -94,7 +94,7 @@ Which can be used like this:
   <table>
     <tr><td>First Name</td><td>Rusty</td></tr>
     <tr><td>Last Name</td><td>Shackelford</td></tr>
-    <tr><td>Age</td><td>42</td></tr>
+    <tr><td>Age</td><td>61</td></tr>
   </table>
 </div>
 
@@ -192,12 +192,4 @@ I can never remember how to center a div in CSS. How do you center a div in hyji
 
 ## Endless recombinability
 
-So, the beauty of this is that all the tags and decorators are just functions and functions are arbitrarily recomposable. And it's all in the same language, making external substitute languages unnecessary.
-
-Haml and SASS are nice, but hyjinks* completely replace them. And you can customize it further however you want as each layer of the library is exposed for you to build on.
-
-And with ClojureScript, one could use this library to apply "templates" on the client side, replacing libraries like Moustache.js, or Angular or Backbone or whatever (I don't even know that much about these, I just think Burn, Javascript! Burn!).
-
-This is why people love Lisp. It can be whatever language you want, just so long as the language you want has a syntax based on s-expressions.
-
-*Ok, so hyjinks isn't anything special. You can really thank Clojure. Or Hickey. Or McCarthy.
+So, the beauty of this is that all the tags and decorators are just functions and functions are arbitrarily recomposable. And it's all in the same language (Clojure), so you don't need a new language for each purpose - a language for laying out a document (HTML), a language for styling a document (CSS), a language for programming the page behavior (JavaScript). You can use Clojure(Script) for all of them. You also wouldn't need to define a new, external language to extend or abstract the above languages - HTML -> Haml, CSS -> SASS, JavaScript -> CoffeeScript. The language is written in the language so extending the language can be done in the language can be done without writing a new language.
