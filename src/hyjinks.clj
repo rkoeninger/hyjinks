@@ -106,6 +106,8 @@
 (defn assoc-css [t & key-vals]
 	(assoc t :css (merge (:css t) (apply hash-map key-vals))))
 
+(defn attrs [& key-vals] (merge empty-attrs (apply hash-map key-vals)))
+
 (defn css [& key-vals] (merge empty-css (apply hash-map key-vals)))
 
 (defn tag [tag-name & stuff]
