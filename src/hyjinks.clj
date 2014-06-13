@@ -23,10 +23,11 @@
 
 (defn- $lift [& fs] (partial map #(%1 %2) fs))
 
-(defmacro impl-invoke [record]
-	(let [parted-record (partition-by #(= % 'clojure.lang.IFn) record)
+(defmacro defrecord-ifn [& record-parts]
+	(let [parted-record (partition-by #(= % 'clojure.lang.IFn) record-parts)
 	      paramses (map (fn [n] (map #(symbol (str "_" %)) (range 0 n))) (range 0 21))]
 		(concat
+			(list 'defrecord)
 			(apply concat (take 2 parted-record))
 			(map (fn [params] `(~'invoke [~'this ~@params] (.applyTo ~'this (list ~@params)))) paramses)
 			(list `(~'invoke [~'this ~@(last paramses) ~'more] (.applyTo ~'this (concat (list ~@(last paramses)) ~'more))))
@@ -52,7 +53,7 @@
 	(invoke [this x] (.applyTo this (list x)))
 	(applyTo [this args] (let [tag (first args)] (tag this))))
 
-(impl-invoke (defrecord Tag [tag-name attrs css items]
+(defrecord-ifn Tag [tag-name attrs css items]
 	java.lang.Object
 	(toString [_]
 		(let [attrs-with-css (if (empty? css) attrs (assoc attrs :style (str css)))]
@@ -62,7 +63,7 @@
 					" />"
 					[">" (map html-escape items) "</" tag-name ">"]))))
 	clojure.lang.IFn
-	(applyTo [this args] (apply extend-tag this args))))
+	(applyTo [this args] (apply extend-tag this args)))
 
 (defrecord Literal [s] java.lang.Object (toString [_] s))
 
@@ -237,7 +238,7 @@
 ;; Character Entities
 
 (defmacro defentity
-	([id] `(def ~id (literal ~(str "&" (name id) ";"))))
+	([id] `(defentity ~id ~id))
 	([id value] `(def ~id (literal ~(str "&" (name value) ";")))))
 
 (defentity nbsp)
