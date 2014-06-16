@@ -71,9 +71,6 @@
 		(table hide (tr (td "A") (td "B")))
 		(hide (table (tr (td "A") (td "B"))))
 		"<table style=\"; display: none;\"><tr><td>A</td><td>B</td></tr></table>")
-	(should-equal-str
-		(map-table {:first-name "Rusty" :last-name "Shackelford"})
-		"<table><tr><td>First Name</td><td>Rusty</td></tr><tr><td>Last Name</td><td>Shackelford</td></tr></table>")
 
 	; Some decorators are variadic and take a Tag as the optional last argument
 	(should-equal-str

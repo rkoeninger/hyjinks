@@ -4,24 +4,18 @@
 
 ;; General helpers
 
-(defn- str-k [x] (if (keyword? x) (name x) x))
+(defn unnamed [x] (if (instance? clojure.lang.Named x) (name x) x))
 
-(defn- str-join [& items] (apply str (map str-k (flatten items))))
+(defn str-join [& items] (apply str (map unnamed (flatten items))))
 
 (defn html-escape [s]
 	(if-not (string? s) s
-		(escape (str-k s) {
+		(escape (unnamed s) {
 			\< "&lt;"
 			\> "&gt;"
 			\& "&amp;"
 			\" "&quot;"
 			\' "&#39;"})))
-
-(defn- readable-string [id]
-	(if-not (keyword? id) id
-		(join " " (map capitalize (split (name id) #"-")))))
-
-(defn- $lift [& fs] (partial map #(%1 %2) fs))
 
 (defmacro defrecord-ifn [& record-parts]
 	(let [parted-record (partition-by #(= % 'clojure.lang.IFn) record-parts)
@@ -32,6 +26,8 @@
 			(map (fn [params] `(~'invoke [~'this ~@params] (.applyTo ~'this (list ~@params)))) paramses)
 			(list `(~'invoke [~'this ~@(last paramses) ~'more] (.applyTo ~'this (concat (list ~@(last paramses)) ~'more))))
 			(apply concat (drop 2 parted-record)))))
+
+(def record? (partial instance? clojure.lang.IRecord))
 
 (defn none [pred & xs] (not (apply some pred xs)))
 
@@ -96,9 +92,9 @@
 
 (def attrs? (partial instance? Attrs))
 
-(defn attrs-or-map? [x] (or (attrs? x) (and (map? x) (not (css? x)) (not (tag? x)) (not (literal? x)))))
+(def attrs-or-map? (some-fn attrs? (every-pred map? (complement record?))))
 
-(defn child-item? [x] (not (or (attrs-or-map? x) (css? x) (nil? x) (= "" x))))
+(def child-item? (complement (some-fn attrs-or-map? css? nil? empty?)))
 
 (defn assoc-attrs [t & key-vals]
 	(assoc t :attrs (merge (:attrs t) (apply hash-map key-vals))))
@@ -161,17 +157,12 @@
 
 (defn table-rows [& rows] (table (map #(row-cells (flatten %)) rows)))
 
-(defn map-table [m] (table (map (comp tr ($lift (comp td readable-string) td)) (sort-by key m))))
-
-(defn definitions [term-map]
-	(dl (mapcat ($lift dt dd) (sort-by key term-map))))
-
 (defn radio-list [param & opts]
 	(mapcat (fn [[t v]] [(label v {:for t}) (input {:id v :value v :name param :type "radio"})]) opts))
 
 ;; CSS Units
 
-(defmacro defunit [suffix] `(defn ~suffix [~'x] (if (number? ~'x) (str ~'x ~(name suffix)) (str-k ~'x))))
+(defmacro defunit [suffix] `(defn ~suffix [~'x] (if (number? ~'x) (str ~'x ~(name suffix)) (unnamed ~'x))))
 
 (defunit px)
 (defunit deg)
@@ -180,7 +171,7 @@
 ;; CSS Value Builders
 
 (defmacro defcssval [id & args]
-	(let [prepare-arg (fn [arg] (if (.contains (name arg) "angle") `(deg ~arg) `(str-k ~arg)))
+	(let [prepare-arg (fn [arg] (if (.contains (name arg) "angle") `(deg ~arg) `(unnamed ~arg)))
 	      format-str (str (name id) "(" (join ", " (repeat (count args) "%s")) ")")]
 		`(defn ~id [~@args] (format ~format-str ~@(map prepare-arg args)))))
 
