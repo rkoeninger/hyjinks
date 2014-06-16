@@ -128,19 +128,20 @@
 
 ;; Declaring a whole bunch of tags
 
-(defn declare-tag [sym] (eval `(def ~sym (tag ~(str sym)))))
+(defmacro deftag
+	([sym] `(def ~sym (tag ~(str sym))))
+	([sym0 & syms] `(do ~@(map (fn [sym] `(deftag ~sym)) (conj syms sym0)))))
 
-(dorun (map declare-tag [
-	'h1 'h2 'h3 'h4 'h5 'h6 'hr
-	'b 'i 'u 's 'del 'ins 'small 'sup 'sub 'pre 'q 'cite 'mark 'dbo
-	'a 'img 'embed 'object 'param 'iframe 'audio 'video
-	'ul 'ol 'li 'dl 'dt 'dd
-	'p 'span 'div 'nav 'br 'canvas 'textarea 'blockquote
-	'table 'thead 'tbody 'tfoot 'th 'tr 'td 'caption 'col 'colgroup
-	'address 'article 'header 'footer 'main 'section 'aside 'figure 'figcaption
-	'form 'legend 'select 'option 'optgroup
-	'fieldset 'label 'input 'button 'progress
-	'html 'head 'title 'link 'style 'script 'base 'body 'noscript]))
+(deftag h1 h2 h3 h4 h5 h6 hr)
+(deftag b i u s del ins small sup sub pre q cite mark dbo)
+(deftag a img hr embed object param iframe audio video)
+(deftag ul ol li dl dt dd)
+(deftag p span div nav br canvas textarea blockquote)
+(deftag table thead tbody tfoot th tr td caption col colgroup)
+(deftag address article header footer main section aside figure figcaption)
+(deftag form legend select option optgroup)
+(deftag fieldset label input button progress)
+(deftag html head title link style script base body noscript)
 
 (defn !-- [& content] (literal (str-join "<!-- " content " -->")))
 
