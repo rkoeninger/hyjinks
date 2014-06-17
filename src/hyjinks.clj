@@ -31,9 +31,9 @@
 
 (defn none [pred & xs] (not (apply some pred xs)))
 
-;; Forward definitions to resolve circular references
+;; Forward declarations to resolve circular references
 
-(def extend-tag nil)
+(declare extend-tag nil)
 
 ;; Core types
 
