@@ -27,8 +27,6 @@
 			(list `(~'invoke [~'this ~@(last paramses) ~'more] (.applyTo ~'this (concat (list ~@(last paramses)) ~'more))))
 			(apply concat (drop 2 parted-record)))))
 
-(def record? (partial instance? clojure.lang.IRecord))
-
 (defn none [pred & xs] (not (apply some pred xs)))
 
 ;; Forward definitions to resolve circular references

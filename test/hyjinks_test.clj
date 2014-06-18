@@ -80,12 +80,6 @@
 	; But Tags shouldn't be anywhere else
 	(should-fail (transform (rotate 45) div (skew 10 15)))
 
-	; This test is essentially broken as attributes are sorted
-	; by hash function and not in any user-reasonable manner.
-	(should-equal-str
-		(tag "asd" {:a 4 :b :d} "qwe" {:q :e :f 4} (css :asd "qwe" :dfg :ert) "sdf")
-		"<asd style=\"; asd: qwe; dfg: ert;\" q=\"e\" f=\"4\" b=\"d\" a=\"4\">qwesdf</asd>")
-
 	; Nullary application should be idempotent - and equal to unapplied tag
 	(should-equal-str
 		div
