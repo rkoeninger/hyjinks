@@ -94,15 +94,13 @@
 
 (def child-item? (complement (some-fn attrs-or-map? css? nil? empty?)))
 
-(defn assoc-attrs [t & key-vals]
-	(assoc t :attrs (merge (:attrs t) (apply hash-map key-vals))))
+(defn assoc-attrs [t & {:as key-vals}] (update-in t [:attrs] (merge key-vals)))
 
-(defn assoc-css [t & key-vals]
-	(assoc t :css (merge (:css t) (apply hash-map key-vals))))
+(defn assoc-css [t & {:as key-vals}] (update-in t [:css] (merge key-vals)))
 
-(defn attrs [& key-vals] (merge empty-attrs (apply hash-map key-vals)))
+(defn attrs [& {:as key-vals}] (merge empty-attrs key-vals))
 
-(defn css [& key-vals] (merge empty-css (apply hash-map key-vals)))
+(defn css [& {:as key-vals}] (merge empty-css key-vals))
 
 (defn tag [tag-name & stuff]
 	(let [attrs (apply merge empty-attrs (filter attrs-or-map? stuff))
@@ -143,6 +141,8 @@
 
 (defn page-meta [prop value] (tag "meta" {:name prop :content value}))
 
+(defn radio [param value] (input {:name param :id value :value value :type "radio"}))
+
 ;; Higher-order "tags"
 
 (defn comp-tag [t u] (fn [& items] (t (map u (flatten items)))))
@@ -153,10 +153,11 @@
 
 (def row-cells (comp-tag tr td))
 
-(defn table-rows [& rows] (table (map #(row-cells (flatten %)) rows)))
+(defn table-rows [& rows] (table (map (comp row-cells flatten) rows)))
 
-(defn radio-list [param & opts]
-	(mapcat (fn [[t v]] [(label v {:for t}) (input {:id v :value v :name param :type "radio"})]) opts))
+(defn radio-list [param & opts] (mapcat (fn [[text value]] [(radio param value) (label text {:for value})]) (partition 2 opts)))
+
+(defn vertical-radio-list [param & opts] (apply table-rows (partition 2 (apply radio-list param opts))))
 
 ;; CSS Units
 
@@ -223,8 +224,7 @@
 
 (defdecorator transition-property [x] (:transition-property x :-moz-transition-property x :-webkit-transition-property x :-o-transition-property x))
 
-; linear-gradient
-(defdecorator gradient [d c1 c2] (
+(defdecorator background-gradient [d c1 c2] (
 	:background-color c1
 	:background-image (linear-gradient d c1 c2)
 	:background-image (-webkit-linear-gradient d c1 c2)))
