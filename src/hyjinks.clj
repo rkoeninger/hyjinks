@@ -164,6 +164,9 @@
 (defmacro defunit [suffix] `(defn ~suffix [~'x] (if (number? ~'x) (str ~'x ~(name suffix)) (unnamed ~'x))))
 
 (defunit px)
+(defunit cm)
+(defunit em)
+(defunit pt)
 (defunit deg)
 (defunit %)
 
@@ -173,6 +176,19 @@
 	(let [prepare-arg (fn [arg] (if (.contains (name arg) "angle") `(deg ~arg) `(unnamed ~arg)))
 	      format-str (str (name id) "(" (join ", " (repeat (count args) "%s")) ")")]
 		`(defn ~id [~@args] (format ~format-str ~@(map prepare-arg args)))))
+
+; Used for: color, background-color
+
+(defcssval rgb r g b)
+(defcssval rgba r g b a)
+
+; Used for: background, background-image
+
+(defcssval url u)
+
+; Used for: clip
+
+(defcssval rect t r b l)
 
 ; Used for: transform
 
