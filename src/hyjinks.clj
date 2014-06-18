@@ -4,18 +4,18 @@
 
 ;; General helpers
 
-(defn unnamed [x] (if (instance? clojure.lang.Named x) (name x) x))
+(defn only-if [pred f] (fn [x] (if (pred x) (f x) x)))
+
+(def unnamed (only-if (partial instance? clojure.lang.Named) name))
 
 (defn str-join [& items] (apply str (map unnamed (flatten items))))
 
-(defn html-escape [s]
-	(if-not (string? s) s
-		(escape (unnamed s) {
-			\< "&lt;"
-			\> "&gt;"
-			\& "&amp;"
-			\" "&quot;"
-			\' "&#39;"})))
+(def html-escape (only-if string? #(escape % {
+	\< "&lt;"
+	\> "&gt;"
+	\& "&amp;"
+	\" "&quot;"
+	\' "&#39;"})))
 
 (defmacro defrecord-ifn [& record-parts]
 	(let [parted-record (partition-by #(= % 'clojure.lang.IFn) record-parts)
