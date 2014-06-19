@@ -43,6 +43,11 @@
 		(p (tag "Content"))
 		"<p><Content /></p>")
 
+	; Tags can have special rendering options specified, like :both-tags
+	(should-equal-str
+		(script)
+		"<script></script>")
+
 	; CSS can be applied with a CSS object
 	(should-equal-str
 		(div (css :color :red) (br))

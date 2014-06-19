@@ -35,6 +35,8 @@
 
 ;; Core types
 
+(defrecord RenderOptions [])
+
 (defrecord Attrs []
 	java.lang.Object
 	(toString [this]
@@ -53,13 +55,13 @@
 	(invoke [this x] (.applyTo this (list x)))
 	(applyTo [this args] (let [t (first args)] (t this))))
 
-(defrecord-ifn Tag [tag-name attrs css items]
+(defrecord-ifn Tag [tag-name attrs css items r-opts]
 	java.lang.Object
 	(toString [_]
 		(let [attrs-with-css (if (empty? css) attrs (assoc attrs :style (str css)))]
 			(str-join
 				"<" tag-name attrs-with-css
-				(if (empty? items)
+				(if (and (empty? items) (not (:both-tags r-opts)))
 					" />"
 					[">" (map html-escape items) "</" tag-name ">"]))))
 	clojure.lang.IFn
@@ -82,6 +84,8 @@
 
 (def empty-css (Css.))
 
+(def empty-r-opts (RenderOptions.))
+
 (def literal? (partial instance? Literal))
 
 (def tag? (partial instance? Tag))
@@ -90,9 +94,11 @@
 
 (def attrs? (partial instance? Attrs))
 
+(def r-opts? (partial instance? RenderOptions))
+
 (def attrs-or-map? (some-fn attrs? (every-pred map? (complement record?))))
 
-(def child-item? (complement (some-fn attrs-or-map? css? nil? empty?)))
+(def child-item? (complement (some-fn attrs-or-map? css? r-opts? nil? empty?)))
 
 (defn assoc-attrs [t & {:as key-vals}] (update-in t [:attrs] (merge key-vals)))
 
@@ -102,19 +108,23 @@
 
 (defn css [& {:as key-vals}] (merge empty-css key-vals))
 
+(defn r-opts [& {:as key-vals}] (merge empty-r-opts key-vals))
+
 (defn tag [tag-name & stuff]
 	(let [attrs (apply merge empty-attrs (filter attrs-or-map? stuff))
 	      css (apply merge empty-css (filter css? stuff))
+	      r-opts (apply merge empty-r-opts (filter r-opts? stuff))
 	      items (flatten (filter child-item? stuff))]
-		(Tag. tag-name attrs css items)))
+		(Tag. tag-name attrs css items r-opts)))
 
 (defn extend-tag [t & stuff]
 	(if (empty? stuff)
 		t
 		(let [attrs (apply merge (:attrs t) (filter attrs-or-map? stuff))
 		      css (apply merge (:css t) (filter css? stuff))
+		      r-opts (apply merge empty-r-opts (filter r-opts? stuff))
 		      items (concat (:items t) (flatten (filter child-item? stuff)))]
-			(Tag. (:tag-name t) attrs css items))))
+			(Tag. (:tag-name t) attrs css items r-opts))))
 
 (defn literal [& content] (Literal. (str-join content)))
 
@@ -133,9 +143,15 @@
 (deftag address article header footer main section aside figure figcaption)
 (deftag form legend select option optgroup)
 (deftag fieldset label input button progress)
-(deftag html head title link style script base body noscript)
+(deftag html head title link style base body noscript)
 
 (defn !-- [& content] (literal (str-join "<!-- " content " -->")))
+
+(def script (tag "script" (r-opts :both-tags true)))
+
+(def js (script {:language "text/javascript"}))
+
+(def import-js (comp js (partial hash-map :src)))
 
 (defn media-source [url type] (tag "source" {:src url :type type}))
 
