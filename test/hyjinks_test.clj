@@ -45,8 +45,18 @@
 
 	; Tags can have special rendering options specified, like :both-tags
 	(should-equal-str
-		(script)
+		script
 		"<script></script>")
+
+	; and :no-escape
+	(should-equal-str
+		(script "\"")
+		"<script>\"</script>")
+
+	; Normally, it's
+	(should-equal-str
+		(p "\"")
+		"<p>&quot;</p>")
 
 	; CSS can be applied with a CSS object
 	(should-equal-str

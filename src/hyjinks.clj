@@ -58,12 +58,13 @@
 (defrecord-ifn Tag [tag-name attrs css items r-opts]
 	java.lang.Object
 	(toString [_]
-		(let [attrs-with-css (if (empty? css) attrs (assoc attrs :style (str css)))]
+		(let [attrs-with-css (if (empty? css) attrs (assoc attrs :style (str css)))
+		      escape-child (if (:no-escape r-opts) identity html-escape)]
 			(str-join
 				"<" tag-name attrs-with-css
 				(if (and (empty? items) (not (:both-tags r-opts)))
 					" />"
-					[">" (map html-escape items) "</" tag-name ">"]))))
+					[">" (map escape-child items) "</" tag-name ">"]))))
 	clojure.lang.IFn
 	(applyTo [this args] (apply extend-tag this args)))
 
@@ -122,7 +123,7 @@
 		t
 		(let [attrs (apply merge (:attrs t) (filter attrs-or-map? stuff))
 		      css (apply merge (:css t) (filter css? stuff))
-		      r-opts (apply merge empty-r-opts (filter r-opts? stuff))
+		      r-opts (apply merge (:r-opts t) (filter r-opts? stuff))
 		      items (concat (:items t) (flatten (filter child-item? stuff)))]
 			(Tag. (:tag-name t) attrs css items r-opts))))
 
@@ -147,7 +148,7 @@
 
 (defn !-- [& content] (literal (str-join "<!-- " content " -->")))
 
-(def script (tag "script" (r-opts :both-tags true)))
+(def script (tag "script" (r-opts :both-tags true :no-escape true)))
 
 (def js (script {:language "text/javascript"}))
 
