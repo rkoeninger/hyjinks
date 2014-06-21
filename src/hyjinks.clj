@@ -129,16 +129,22 @@
 
 (defn literal [& content] (Literal. (str-join content)))
 
+;; Declaring rendering options
+
+(defmacro defflag ([sym] `(def ~sym (r-opts ~(keyword sym) true))))
+
+(defflag both-tags)
+(defflag no-escape)
+
 ;; Declaring a whole bunch of tags
 
 (defmacro deftag
 	([sym] `(def ~sym (tag ~(str sym))))
 	([sym0 & syms] `(do ~@(map (fn [sym] `(deftag ~sym)) (conj syms sym0)))))
 
-(deftag h1 h2 h3 h4 h5 h6 hr)
+(deftag h1 h2 h3 h4 h5 h6 hr ul ol li dl dt dd)
 (deftag b i u s del ins small sup sub pre q cite mark dbo)
 (deftag a img hr embed object param iframe audio video)
-(deftag ul ol li dl dt dd)
 (deftag p span div nav br canvas textarea blockquote)
 (deftag table thead tbody tfoot th tr td caption col colgroup)
 (deftag address article header footer main section aside figure figcaption)
@@ -148,7 +154,7 @@
 
 (defn !-- [& content] (literal (str-join "<!-- " content " -->")))
 
-(def script (tag "script" (r-opts :both-tags true :no-escape true)))
+(def script (tag "script" both-tags no-escape))
 
 (def js (script {:language "text/javascript"}))
 
