@@ -27,6 +27,17 @@
 	(should-equal-str
 		(p false)
 		"<p>false</p>")
+	(should-equal-str
+		(p false "qwe" 4 3 "asd")
+		"<p>falseqwe43asd</p>")
+	(should-equal-str
+		(p false "qwe" (p "zxc") 4 3 "asd")
+		"<p>falseqwe<p>zxc</p>43asd</p>")
+
+	; Extra padding between non-tag elements can be specified
+	(should-equal-str
+		(p pad-children false "qwe" (p "zxc") 4 3 "asd")
+		"<p>false qwe<p>zxc</p>4 3 asd</p>")
 
 	; Tag attributes can be specified with hash-maps
 	(should-equal-str

@@ -2,7 +2,14 @@
 
 (use '[clojure.string :only (escape split join capitalize lower-case)])
 
+;; Forward definitions to resolve circular references
+
+(def tag? nil)
+(def extend-tag nil)
+
 ;; General helpers
+
+(defn none [pred & xs] (not (apply some pred xs)))
 
 (defn only-if [pred f x] (if (pred x) (f x) x))
 
@@ -11,6 +18,21 @@
 (defn flatten-seq [& xs] (only-if sequential? flatten xs))
 
 (defn str-join [& items] (apply str (map unnamed (flatten-seq items))))
+
+(defn interposep [sep pred coll]
+	(cond
+		(empty? coll) (empty coll)
+		(= 1 (count coll)) coll
+		:else (if (pred (first coll) (second coll))
+			(concat [(first coll) sep] (interposep sep pred (rest coll)))
+			(concat [(first coll)] (interposep sep pred (rest coll))))))
+
+(defn str-join-extra-spaces [& items]
+	(->> items
+		flatten-seq
+		(map unnamed)
+		(interposep " " #(not (or (tag? %1) (tag? %2))))
+		(apply str)))
 
 (defn html-escape [x] (only-if string? #(escape % {
 	\< "&lt;"
@@ -29,15 +51,12 @@
 			(list `(~'invoke [~'this ~@(last paramses) ~'more] (.applyTo ~'this (concat (list ~@(last paramses)) ~'more))))
 			(apply concat (drop 2 parted-record)))))
 
-(defn none [pred & xs] (not (apply some pred xs)))
-
-;; Forward definitions to resolve circular references
-
-(def extend-tag nil)
-
 ;; Core types
 
-(defrecord RenderOptions [])
+(defrecord RenderOptions []
+	java.lang.Object
+	(toString [this]
+		(str-join (map (fn [[k v]] (if v [k (if (not (true? v)) v)])) this))))
 
 (defrecord Attrs []
 	java.lang.Object
@@ -61,12 +80,13 @@
 	java.lang.Object
 	(toString [_]
 		(let [attrs-with-css (if (empty? css) attrs (assoc attrs :style (str css)))
-		      escape-child (if (:no-escape r-opts) identity html-escape)]
+		      escape-child (if (:no-escape r-opts) identity html-escape)
+		      child-join (if (:pad-children r-opts) str-join-extra-spaces str-join)]
 			(str-join
 				"<" tag-name attrs-with-css
 				(if (and (empty? items) (not (:both-tags r-opts)))
 					" />"
-					[">" (map escape-child items) "</" tag-name ">"]))))
+					[">" (child-join (map escape-child items)) "</" tag-name ">"]))))
 	clojure.lang.IFn
 	(applyTo [this args] (apply extend-tag this args)))
 
@@ -80,6 +100,7 @@
 (defprint Css)
 (defprint Tag)
 (defprint Literal)
+(defprint RenderOptions)
 
 ;; Builder functions
 
@@ -137,6 +158,7 @@
 
 (defflag both-tags)
 (defflag no-escape)
+(defflag pad-children)
 
 ;; Declaring a whole bunch of tags
 
