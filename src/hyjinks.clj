@@ -4,18 +4,20 @@
 
 ;; General helpers
 
-(defn only-if [pred f] (fn [x] (if (pred x) (f x) x)))
+(defn only-if [pred f x] (if (pred x) (f x) x))
 
-(def unnamed (only-if (partial instance? clojure.lang.Named) name))
+(defn unnamed [x] (only-if (partial instance? clojure.lang.Named) name x))
 
-(defn str-join [& items] (apply str (map unnamed (flatten items))))
+(defn flatten-seq [& xs] (only-if sequential? flatten xs))
 
-(def html-escape (only-if string? #(escape % {
+(defn str-join [& items] (apply str (map unnamed (flatten-seq items))))
+
+(defn html-escape [x] (only-if string? #(escape % {
 	\< "&lt;"
 	\> "&gt;"
 	\& "&amp;"
 	\" "&quot;"
-	\' "&#39;"})))
+	\' "&#39;"}) x))
 
 (defmacro defrecord-ifn [& record-parts]
 	(let [parted-record (partition-by #(= % 'clojure.lang.IFn) record-parts)
@@ -87,19 +89,19 @@
 
 (def empty-r-opts (RenderOptions.))
 
-(def literal? (partial instance? Literal))
+(defn literal? [x] (instance? Literal x))
 
-(def tag? (partial instance? Tag))
+(defn tag? [x] (instance? Tag x))
 
-(def css? (partial instance? Css))
+(defn css? [x] (instance? Css x))
 
-(def attrs? (partial instance? Attrs))
+(defn attrs? [x] (instance? Attrs x))
 
-(def r-opts? (partial instance? RenderOptions))
+(defn r-opts? [x] (instance? RenderOptions x))
 
-(def attrs-or-map? (some-fn attrs? (every-pred map? (complement record?))))
+(defn attrs-or-map? [x] (or (attrs? x) (and (map? x) (not (record? x)))))
 
-(def child-item? (complement (some-fn attrs-or-map? css? r-opts? nil? empty?)))
+(defn child-item? [x] (not (or (attrs-or-map? x) (css? x) (r-opts? x) (nil? x) (= "" x))))
 
 (defn assoc-attrs [t & {:as key-vals}] (update-in t [:attrs] (merge key-vals)))
 
@@ -115,7 +117,7 @@
 	(let [attrs (apply merge empty-attrs (filter attrs-or-map? stuff))
 	      css (apply merge empty-css (filter css? stuff))
 	      r-opts (apply merge empty-r-opts (filter r-opts? stuff))
-	      items (flatten (filter child-item? stuff))]
+	      items (flatten-seq (filter child-item? stuff))]
 		(Tag. tag-name attrs css items r-opts)))
 
 (defn extend-tag [t & stuff]
@@ -124,7 +126,7 @@
 		(let [attrs (apply merge (:attrs t) (filter attrs-or-map? stuff))
 		      css (apply merge (:css t) (filter css? stuff))
 		      r-opts (apply merge (:r-opts t) (filter r-opts? stuff))
-		      items (concat (:items t) (flatten (filter child-item? stuff)))]
+		      items (concat (:items t) (flatten-seq (filter child-item? stuff)))]
 			(Tag. (:tag-name t) attrs css items r-opts))))
 
 (defn literal [& content] (Literal. (str-join content)))
@@ -168,7 +170,7 @@
 
 ;; Higher-order "tags"
 
-(defn comp-tag [t u] (fn [& items] (t (map u (flatten items)))))
+(defn comp-tag [t u] (fn [& items] (t (map u (flatten-seq items)))))
 
 (def bullet-list (comp-tag ul li))
 
@@ -176,7 +178,7 @@
 
 (def row-cells (comp-tag tr td))
 
-(defn table-rows [& rows] (table (map (comp row-cells flatten) rows)))
+(defn table-rows [& rows] (table (map (comp row-cells flatten-seq) rows)))
 
 (defn radio-list [param & opts] (mapcat (fn [[text value]] [(radio param value) (label text {:for value})]) (partition 2 opts)))
 

@@ -20,6 +20,14 @@
 		(ol (li "Monday") (li "Tuesday") (li "Wednesday"))
 		"<ol><li>Monday</li><li>Tuesday</li><li>Wednesday</li></ol>")
 
+	; Non-strings can be passed as tag contents
+	(should-equal-str
+		(p 1)
+		"<p>1</p>")
+	(should-equal-str
+		(p false)
+		"<p>false</p>")
+
 	; Tag attributes can be specified with hash-maps
 	(should-equal-str
 		(p {:attr :value} "Content")
