@@ -1,3 +1,5 @@
+https://travis-ci.org/rkoeninger/hyjinks.svg
+
 # hyjinks
 
 HTML generation/templating library for Clojure/ClojureScript.
