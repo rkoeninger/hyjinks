@@ -1,4 +1,4 @@
-https://travis-ci.org/rkoeninger/hyjinks.svg
+[![Build Status](https://travis-ci.org/rkoeninger/hyjinks.svg?branch=master)](https://travis-ci.org/rkoeninger/hyjinks)
 
 # hyjinks
 
