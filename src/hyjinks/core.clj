@@ -1,6 +1,5 @@
-(ns hyjinks)
-
-(use '[clojure.string :only (escape split join capitalize lower-case)])
+(ns hyjinks.core
+  (:use [clojure.string :only (escape split join capitalize lower-case)]))
 
 ;; Forward definitions to resolve circular references
 
@@ -20,75 +19,75 @@
 (defn str-join [& items] (apply str (map unnamed (flatten-seq items))))
 
 (defn interposep [sep pred coll]
-	(cond
-		(empty? coll) (empty coll)
-		(= 1 (count coll)) coll
-		:else (if (pred (first coll) (second coll))
-			(concat [(first coll) sep] (interposep sep pred (rest coll)))
-			(concat [(first coll)] (interposep sep pred (rest coll))))))
+  (cond
+    (empty? coll) (empty coll)
+    (= 1 (count coll)) coll
+    :else (if (pred (first coll) (second coll))
+      (concat [(first coll) sep] (interposep sep pred (rest coll)))
+      (concat [(first coll)] (interposep sep pred (rest coll))))))
 
 (defn str-join-extra-spaces [& items]
-	(->> items
-		flatten-seq
-		(map unnamed)
-		(interposep " " #(not (or (tag? %1) (tag? %2))))
-		(apply str)))
+  (->> items
+    flatten-seq
+    (map unnamed)
+    (interposep " " #(not (or (tag? %1) (tag? %2))))
+    (apply str)))
 
 (defn html-escape [x] (only-if string? #(escape % {
-	\< "&lt;"
-	\> "&gt;"
-	\& "&amp;"
-	\" "&quot;"
-	\' "&#39;"}) x))
+  \< "&lt;"
+  \> "&gt;"
+  \& "&amp;"
+  \" "&quot;"
+  \' "&#39;"}) x))
 
 (defmacro defrecord-ifn [& record-parts]
-	(let [parted-record (partition-by #(= % 'clojure.lang.IFn) record-parts)
-	      paramses (map (fn [n] (map #(symbol (str "_" %)) (range 0 n))) (range 0 21))]
-		(concat
-			(list 'defrecord)
-			(apply concat (take 2 parted-record))
-			(map (fn [params] `(~'invoke [~'this ~@params] (.applyTo ~'this (list ~@params)))) paramses)
-			(list `(~'invoke [~'this ~@(last paramses) ~'more] (.applyTo ~'this (concat (list ~@(last paramses)) ~'more))))
-			(apply concat (drop 2 parted-record)))))
+  (let [parted-record (partition-by #(= % 'clojure.lang.IFn) record-parts)
+        paramses (map (fn [n] (map #(symbol (str "_" %)) (range 0 n))) (range 0 21))]
+    (concat
+      (list 'defrecord)
+      (apply concat (take 2 parted-record))
+      (map (fn [params] `(~'invoke [~'this ~@params] (.applyTo ~'this (list ~@params)))) paramses)
+      (list `(~'invoke [~'this ~@(last paramses) ~'more] (.applyTo ~'this (concat (list ~@(last paramses)) ~'more))))
+      (apply concat (drop 2 parted-record)))))
 
 ;; Core types
 
 (defrecord RenderOptions []
-	java.lang.Object
-	(toString [this]
-		(str-join (map (fn [[k v]] (if v [k (if (not (true? v)) v)])) this))))
+  java.lang.Object
+  (toString [this]
+    (str-join (map (fn [[k v]] (if v [k (if (not (true? v)) v)])) this))))
 
 (defrecord Attrs []
-	java.lang.Object
-	(toString [this]
-		(str-join (map (fn [[k v]] [" " k "=\"" (html-escape v) "\""]) this)))
-	clojure.lang.IFn
-	(invoke [this] this)
-	(invoke [this x] (.applyTo this (list x)))
-	(applyTo [this args] (let [t (first args)] (t this))))
+  java.lang.Object
+  (toString [this]
+    (str-join (map (fn [[k v]] [" " k "=\"" (html-escape v) "\""]) this)))
+  clojure.lang.IFn
+  (invoke [this] this)
+  (invoke [this x] (.applyTo this (list x)))
+  (applyTo [this args] (let [t (first args)] (t this))))
 
 (defrecord Css []
-	java.lang.Object
-	(toString [this]
-		(str-join (map (fn [[k v]] ["; " k ": " v]) this) ";"))
-	clojure.lang.IFn
-	(invoke [this] this)
-	(invoke [this x] (.applyTo this (list x)))
-	(applyTo [this args] (let [t (first args)] (t this))))
+  java.lang.Object
+  (toString [this]
+    (str-join (map (fn [[k v]] ["; " k ": " v]) this) ";"))
+  clojure.lang.IFn
+  (invoke [this] this)
+  (invoke [this x] (.applyTo this (list x)))
+  (applyTo [this args] (let [t (first args)] (t this))))
 
 (defrecord-ifn Tag [tag-name attrs css items r-opts]
-	java.lang.Object
-	(toString [_]
-		(let [attrs-with-css (if (empty? css) attrs (assoc attrs :style (str css)))
-		      escape-child (if (:no-escape r-opts) identity html-escape)
-		      child-join (if (:pad-children r-opts) str-join-extra-spaces str-join)]
-			(str-join
-				"<" tag-name attrs-with-css
-				(if (and (empty? items) (not (:both-tags r-opts)))
-					" />"
-					[">" (child-join (map escape-child items)) "</" tag-name ">"]))))
-	clojure.lang.IFn
-	(applyTo [this args] (apply extend-tag this args)))
+  java.lang.Object
+  (toString [_]
+    (let [attrs-with-css (if (empty? css) attrs (assoc attrs :style (str css)))
+          escape-child (if (:no-escape r-opts) identity html-escape)
+          child-join (if (:pad-children r-opts) str-join-extra-spaces str-join)]
+      (str-join
+        "<" tag-name attrs-with-css
+        (if (and (empty? items) (not (:both-tags r-opts)))
+          " />"
+          [">" (child-join (map escape-child items)) "</" tag-name ">"]))))
+  clojure.lang.IFn
+  (applyTo [this args] (apply extend-tag this args)))
 
 (defrecord Literal [s] java.lang.Object (toString [_] s))
 
@@ -135,20 +134,20 @@
 (defn r-opts [& {:as key-vals}] (merge empty-r-opts key-vals))
 
 (defn tag [tag-name & stuff]
-	(let [attrs (apply merge empty-attrs (filter attrs-or-map? stuff))
-	      css (apply merge empty-css (filter css? stuff))
-	      r-opts (apply merge empty-r-opts (filter r-opts? stuff))
-	      items (flatten-seq (filter child-item? stuff))]
-		(Tag. tag-name attrs css items r-opts)))
+  (let [attrs (apply merge empty-attrs (filter attrs-or-map? stuff))
+        css (apply merge empty-css (filter css? stuff))
+        r-opts (apply merge empty-r-opts (filter r-opts? stuff))
+        items (flatten-seq (filter child-item? stuff))]
+    (Tag. tag-name attrs css items r-opts)))
 
 (defn extend-tag [t & stuff]
-	(if (empty? stuff)
-		t
-		(let [attrs (apply merge (:attrs t) (filter attrs-or-map? stuff))
-		      css (apply merge (:css t) (filter css? stuff))
-		      r-opts (apply merge (:r-opts t) (filter r-opts? stuff))
-		      items (concat (:items t) (flatten-seq (filter child-item? stuff)))]
-			(Tag. (:tag-name t) attrs css items r-opts))))
+  (if (empty? stuff)
+    t
+    (let [attrs (apply merge (:attrs t) (filter attrs-or-map? stuff))
+          css (apply merge (:css t) (filter css? stuff))
+          r-opts (apply merge (:r-opts t) (filter r-opts? stuff))
+          items (concat (:items t) (flatten-seq (filter child-item? stuff)))]
+      (Tag. (:tag-name t) attrs css items r-opts))))
 
 (defn literal [& content] (Literal. (str-join content)))
 
@@ -163,8 +162,8 @@
 ;; Declaring a whole bunch of tags
 
 (defmacro deftag
-	([sym] `(def ~sym (tag ~(str sym))))
-	([sym0 & syms] `(do ~@(map (fn [sym] `(deftag ~sym)) (conj syms sym0)))))
+  ([sym] `(def ~sym (tag ~(str sym))))
+  ([sym0 & syms] `(do ~@(map (fn [sym] `(deftag ~sym)) (conj syms sym0)))))
 
 (deftag h1 h2 h3 h4 h5 h6 hr ul ol li dl dt dd)
 (deftag b i u s del ins small sup sub pre q cite mark dbo)
@@ -220,9 +219,9 @@
 ;; CSS Value Builders
 
 (defmacro defcssval [id & args]
-	(let [prepare-arg (fn [arg] (if (.contains (name arg) "angle") `(deg ~arg) `(unnamed ~arg)))
-	      format-str (str (name id) "(" (join ", " (repeat (count args) "%s")) ")")]
-		`(defn ~id [~@args] (format ~format-str ~@(map prepare-arg args)))))
+  (let [prepare-arg (fn [arg] (if (.contains (name arg) "angle") `(deg ~arg) `(unnamed ~arg)))
+        format-str (str (name id) "(" (join ", " (repeat (count args) "%s")) ")")]
+    `(defn ~id [~@args] (format ~format-str ~@(map prepare-arg args)))))
 
 ; Used for: color, background-color
 
@@ -273,7 +272,7 @@
 ;; Decorators
 
 (defmacro defdecorator [sym arglist body]
-	`(defn ~sym (~arglist (css ~@body)) ([~@arglist ~'t] ((~sym ~@arglist) ~'t))))
+  `(defn ~sym (~arglist (css ~@body)) ([~@arglist ~'t] ((~sym ~@arglist) ~'t))))
 
 (defdecorator color [c] (:color c))
 
@@ -288,28 +287,28 @@
 (defdecorator transition-property [x] (:transition-property x :-moz-transition-property x :-webkit-transition-property x :-o-transition-property x))
 
 (defdecorator background-gradient [d c1 c2] (
-	:background-color c1
-	:background-image (linear-gradient d c1 c2)
-	:background-image (-webkit-linear-gradient d c1 c2)))
+  :background-color c1
+  :background-image (linear-gradient d c1 c2)
+  :background-image (-webkit-linear-gradient d c1 c2)))
 
 (def hide (css :display "none"))
 
 (def center (css :margin "0 auto" :text-align "center"))
 
 (defn transform [& xs]
-	(assert (or (< (count xs) 1) (none tag? (butlast xs))))
-	(let [l (last xs)
-	      t (if (tag? l) l)
-	      xs (if (nil? t) xs (butlast xs))
-	      x (join " " xs)
-	      c (css :-webkit-transform x :-moz-transform x :-ms-transform x :-o-transform x :transform x)]
-		(if (nil? t) c (c t))))
+  (assert (or (< (count xs) 1) (none tag? (butlast xs))))
+  (let [l (last xs)
+        t (if (tag? l) l)
+        xs (if (nil? t) xs (butlast xs))
+        x (join " " xs)
+        c (css :-webkit-transform x :-moz-transform x :-ms-transform x :-o-transform x :transform x)]
+    (if (nil? t) c (c t))))
 
 ;; Character Entities
 
 (defmacro defentity
-	([id] `(defentity ~id ~id))
-	([id value] `(def ~id (literal ~(str "&" (name value) ";")))))
+  ([id] `(defentity ~id ~id))
+  ([id value] `(def ~id (literal ~(str "&" (name value) ";")))))
 
 (defentity nbsp)
 (defentity copyright copy)
