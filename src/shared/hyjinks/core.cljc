@@ -3,8 +3,8 @@
 
 ;; Forward definitions to resolve circular references
 
-(def tag? nil)
-(def extend-tag nil)
+(declare tag?)
+(declare extend-tag)
 
 ;; General helpers
 
