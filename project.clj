@@ -11,21 +11,21 @@
   :cljsbuild {
     :builds {
       :dev {
-        :source-paths ["src/shared" "src/cljs"]
+        :source-paths ["src/shared" "src/cljs" "src/cljs_dev"]
         :compiler {
-          :output-to "resources/public/js/compiled/hyjinks_om.js"
+          :output-to "resources/public/js/compiled/hyjinks_react.js"
           :output-dir "resources/public/js/compiled/out"
           :asset-path "js/compiled/out"
           :optimizations :none
-          :main hyjinks.om
+          :main hyjinks.react.dev
           :source-map true
           :source-map-timestamp true
           :cache-analysis true}}
       :min {
         :source-paths ["src/shared" "src/cljs"]
         :compiler {
-          :output-to "resources/public/js/compiled/hyjinks_om.js"
-          :main hyjinks.om
+          :output-to "resources/public/js/compiled/hyjinks_react.js"
+          :main hyjinks.react
           :optimizations :advanced
           :pretty-print false}}}}
   :plugins [

@@ -7,7 +7,7 @@
   [& xs] (is (apply = (map str xs))))
 
 (defmacro should-fail [expr]
-  `(try ~expr false (catch java.lang.AssertionError e# true)))
+  `(try ~expr false (catch java.lang.Throwable e# true)))
 
 (deftest feature-tour
 
@@ -107,11 +107,11 @@
 
   ; Some decorators are variadic and take a Tag as the optional last argument
   (should-equal-str
-    (transform (rotate 45) (skew 10 15) div)
-    (div (transform (rotate 45) (skew 10 15))))
+    (center div)
+    (div center))
 
   ; But Tags shouldn't be anywhere else
-  (should-fail (transform (rotate 45) div (skew 10 15)))
+  (should-fail (color div "red"))
 
   ; Nullary application should be idempotent - and equal to unapplied tag
   (should-equal-str

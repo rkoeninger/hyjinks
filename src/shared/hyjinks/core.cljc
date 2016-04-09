@@ -12,7 +12,7 @@
 
 (defn only-if [pred f x] (if (pred x) (f x) x))
 
-(defn unnamed [x] (only-if (partial instance? clojure.lang.Named) name x))
+(defn unnamed [x] (only-if (partial instance? #?(:clj clojure.lang.Named :cljs cljs.core.INamed)) name x))
 
 (defn flatten-seq [& xs] (only-if sequential? flatten xs))
 
@@ -40,7 +40,7 @@
   \" "&quot;"
   \' "&#39;"}) x))
 
-(defmacro defrecord-ifn [& record-parts]
+#?(:clj (defmacro defrecord-ifn [& record-parts]
   (let [parted-record (partition-by #(= % 'clojure.lang.IFn) record-parts)
         paramses (map (fn [n] (map #(symbol (str "_" %)) (range 0 n))) (range 0 21))]
     (concat
@@ -48,35 +48,55 @@
       (apply concat (take 2 parted-record))
       (map (fn [params] `(~'invoke [~'this ~@params] (.applyTo ~'this (list ~@params)))) paramses)
       (list `(~'invoke [~'this ~@(last paramses) ~'more] (.applyTo ~'this (concat (list ~@(last paramses)) ~'more))))
-      (apply concat (drop 2 parted-record)))))
+      (apply concat (drop 2 parted-record))))))
 
 ;; Core types
 
 (defrecord RenderOptions []
-  java.lang.Object
+  #?(:clj java.lang.Object
+     :cljs Object)
   (toString [this]
     (str-join (map (fn [[k v]] (if v [k (if (not (true? v)) v)])) this))))
 
 (defrecord Attrs []
-  java.lang.Object
+  #?(:clj java.lang.Object
+     :cljs Object)
   (toString [this]
     (str-join (map (fn [[k v]] [" " k "=\"" (html-escape v) "\""]) this)))
-  clojure.lang.IFn
-  (invoke [this] this)
-  (invoke [this x] (.applyTo this (list x)))
-  (applyTo [this args] (let [t (first args)] (t this))))
+  #?@(:clj [
+    clojure.lang.IFn
+    (invoke [this] this)
+    (invoke [this x] (.applyTo this (list x)))
+    (applyTo [this args] ((first args) this))]))
+
+#?(:cljs
+  (extend-type Attrs
+    cljs.core/IFn
+    (-invoke
+      ([this] this)
+      ([this t] (t this)))))
 
 (defrecord Css []
-  java.lang.Object
+  #?(:clj java.lang.Object
+     :cljs Object)
   (toString [this]
     (str-join (map (fn [[k v]] ["; " k ": " v]) this) ";"))
-  clojure.lang.IFn
-  (invoke [this] this)
-  (invoke [this x] (.applyTo this (list x)))
-  (applyTo [this args] (let [t (first args)] (t this))))
+  #?@(:clj [
+    clojure.lang.IFn
+    (invoke [this] this)
+    (invoke [this x] (.applyTo this (list x)))
+    (applyTo [this args] ((first args) this))]))
 
-(defrecord-ifn Tag [tag-name attrs css items r-opts]
-  java.lang.Object
+#?(:cljs
+  (extend-type Css
+    cljs.core/IFn
+    (-invoke
+      ([this] this)
+      ([this t] (t this)))))
+
+(#?(:clj defrecord-ifn :cljs defrecord) Tag [tag-name attrs css items r-opts]
+  #?(:clj java.lang.Object
+     :cljs Object)
   (toString [_]
     (let [attrs-with-css (if (empty? css) attrs (assoc attrs :style (str css)))
           escape-child (if (:no-escape r-opts) identity html-escape)
@@ -86,20 +106,58 @@
         (if (and (empty? items) (not (:both-tags r-opts)))
           " />"
           [">" (child-join (map escape-child items)) "</" tag-name ">"]))))
-  clojure.lang.IFn
-  (applyTo [this args] (apply extend-tag this args)))
+  #?@(:clj [
+    clojure.lang.IFn
+    (applyTo [this args] (apply extend-tag this args))]))
 
-(defrecord Literal [s] java.lang.Object (toString [_] s))
+; #?(:cljs (defmacro invokes [n]
+;   (let [args (fn [m] (map #(symbol (str "x" %)) (range m)))]
+;   `(~'-invoke
+;     ([~'this] ~'this)
+;     ~@(map (fn [m] `([~'this ~@(args m)] (~'extend-tag ~'this ~@(args m)))) (range 1 (inc n)))
+;     ([~'this ~@(args n) ~'more] (apply extend-tag ~@(args n) ~'more))))))
+
+; TODO: generate -invoke overloads for cljs.core/IFn
+#?(:cljs
+  (extend-type Tag
+    cljs.core/IFn
+;    (invokes 20)
+    (-invoke
+      ([this] this)
+      ([this x0] (extend-tag this x0))
+      ([this x0 x1] (extend-tag this x0 x1))
+      ([this x0 x1 x2] (extend-tag this x0 x1 x2))
+      ([this x0 x1 x2 x3] (extend-tag this x0 x1 x2 x3))
+      ([this x0 x1 x2 x3 x4] (extend-tag this x0 x1 x2 x3 x4))
+      ([this x0 x1 x2 x3 x4 x5] (extend-tag this x0 x1 x2 x3 x4 x5))
+      ([this x0 x1 x2 x3 x4 x5 x6] (extend-tag this x0 x1 x2 x3 x4 x5 x6))
+      ([this x0 x1 x2 x3 x4 x5 x6 x7] (extend-tag this x0 x1 x2 x3 x4 x5 x6 x7))
+      ([this x0 x1 x2 x3 x4 x5 x6 x7 x8] (extend-tag this x0 x1 x2 x3 x4 x5 x6 x7 x8))
+      ([this x0 x1 x2 x3 x4 x5 x6 x7 x8 x9] (extend-tag this x0 x1 x2 x3 x4 x5 x6 x7 x8 x9))
+      ([this x0 x1 x2 x3 x4 x5 x6 x7 x8 x9 x10] (extend-tag this x0 x1 x2 x3 x4 x5 x6 x7 x8 x9 x10))
+      ([this x0 x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11] (extend-tag this x0 x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11))
+      ([this x0 x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11 x12] (extend-tag this x0 x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11 x12))
+      ([this x0 x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11 x12 x13] (extend-tag this x0 x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11 x12 x13))
+      ([this x0 x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11 x12 x13 x14] (extend-tag this x0 x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11 x12 x13 x14))
+      ([this x0 x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11 x12 x13 x14 x15] (extend-tag this x0 x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11 x12 x13 x14 x15))
+      ([this x0 x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11 x12 x13 x14 x15 x16] (extend-tag this x0 x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11 x12 x13 x14 x15 x16))
+      ([this x0 x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11 x12 x13 x14 x15 x16 x17] (extend-tag this x0 x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11 x12 x13 x14 x15 x16 x17))
+      ([this x0 x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11 x12 x13 x14 x15 x16 x17 x18] (extend-tag this x0 x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11 x12 x13 x14 x15 x16 x17 x18))
+      ([this x0 x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11 x12 x13 x14 x15 x16 x17 x18 x19] (extend-tag this x0 x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11 x12 x13 x14 x15 x16 x17 x18 x19))
+      ([this x0 x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11 x12 x13 x14 x15 x16 x17 x18 x19 more] (apply extend-tag this x0 x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11 x12 x13 x14 x15 x16 x17 x18 x19 more)))))
+
+(defrecord Literal [s]
+  #?(:clj java.lang.Object
+     :cljs Object)
+  (toString [_] s))
 
 ;; Define REPL print methods
-
-(defmacro defprint [type] `(defmethod print-method ~type [x# ^java.io.Writer w#] (.write w# (str x#))))
-
-(defprint Attrs)
-(defprint Css)
-(defprint Tag)
-(defprint Literal)
-(defprint RenderOptions)
+#?(:clj (defmacro defprint [type] `(defmethod print-method ~type [x# ^java.io.Writer w#] (.write w# (str x#)))))
+#?(:clj (defprint Attrs))
+#?(:clj (defprint Css))
+#?(:clj (defprint Tag))
+#?(:clj (defprint Literal))
+#?(:clj (defprint RenderOptions))
 
 ;; Builder functions
 
@@ -153,27 +211,102 @@
 
 ;; Declaring rendering options
 
-(defmacro defflag ([sym] `(def ~sym (r-opts ~(keyword sym) true))))
+; TODO: fix this? remove macro? cljsbuild didn't like defflag for some reason
 
-(defflag both-tags)
-(defflag no-escape)
-(defflag pad-children)
+;(defmacro defflag [sym] `(def ~sym (r-opts ~(keyword sym) true)))
+
+;(defflag both-tags)
+;(defflag no-escape)
+;(defflag pad-children)
+
+(def both-tags (r-opts :both-tags true))
+(def no-escape (r-opts :no-escape true))
+(def pad-children (r-opts :pad-children true))
 
 ;; Declaring a whole bunch of tags
 
-(defmacro deftag
-  ([sym] `(def ~sym (tag ~(str sym))))
-  ([sym0 & syms] `(do ~@(map (fn [sym] `(deftag ~sym)) (conj syms sym0)))))
+; TODO - restore macro?
 
-(deftag h1 h2 h3 h4 h5 h6 hr ul ol li dl dt dd)
-(deftag b i u s del ins small sup sub pre q cite mark dbo)
-(deftag a img hr embed object param iframe audio video)
-(deftag p span div nav br canvas textarea blockquote)
-(deftag table thead tbody tfoot th tr td caption col colgroup)
-(deftag address article header footer main section aside figure figcaption)
-(deftag form legend select option optgroup)
-(deftag fieldset label input button progress)
-(deftag html head title link style base body noscript)
+(def h1 (tag "h1"))
+(def h2 (tag "h2"))
+(def h3 (tag "h3"))
+(def h4 (tag "h4"))
+(def h5 (tag "h5"))
+(def h6 (tag "h6"))
+(def hr (tag "hr"))
+(def ul (tag "ul"))
+(def ol (tag "ol"))
+(def li (tag "li"))
+(def dl (tag "dl"))
+(def dt (tag "dt"))
+(def dd (tag "dd"))
+(def b (tag "b"))
+(def i (tag "i"))
+(def u (tag "u"))
+(def s (tag "s"))
+(def del (tag "del"))
+(def ins (tag "ins"))
+(def small (tag "small"))
+(def sup (tag "sup"))
+(def sub (tag "sub"))
+(def pre (tag "pre"))
+(def q (tag "q"))
+(def blockquote (tag "blockquote"))
+(def cite (tag "cite"))
+(def mark (tag "mark"))
+(def dbo (tag "dbo"))
+(def a (tag "a"))
+(def img (tag "img"))
+(def embed (tag "embed"))
+(def object (tag "object"))
+(def param (tag "param"))
+(def iframe (tag "iframe"))
+(def audio (tag "audio"))
+(def video (tag "video"))
+(def p (tag "p"))
+(def span (tag "span"))
+(def div (tag "div"))
+(def nav (tag "nav"))
+(def br (tag "br"))
+(def canvas (tag "canvas"))
+(def textarea (tag "textarea"))
+(def table (tag "table"))
+(def thead (tag "thead"))
+(def tbody (tag "tbody"))
+(def tfoot (tag "tfoot"))
+(def th (tag "th"))
+(def tr (tag "tr"))
+(def td (tag "td"))
+(def caption (tag "caption"))
+(def col (tag "col"))
+(def colgroup (tag "colgroup"))
+(def address (tag "address"))
+(def article (tag "article"))
+(def header (tag "header"))
+(def footer (tag "footer"))
+(def main (tag "main"))
+(def section (tag "section"))
+(def aside (tag "aside"))
+(def figure (tag "figure"))
+(def figcaption (tag "figcaption"))
+(def form (tag "form"))
+(def legend (tag "legend"))
+(def select (tag "select"))
+(def option (tag "option"))
+(def optgroup (tag "optgroup"))
+(def fieldset (tag "fieldset"))
+(def label (tag "label"))
+(def input (tag "input"))
+(def button (tag "button"))
+(def progress (tag "progress"))
+(def html (tag "html"))
+(def head (tag "head"))
+(def title (tag "title"))
+(def link (tag "link"))
+(def style (tag "style"))
+(def base (tag "base"))
+(def body (tag "body"))
+(def noscript (tag "noscript"))
 
 (defn !-- [& content] (literal (str-join "<!-- " content " -->")))
 
@@ -207,114 +340,129 @@
 
 ;; CSS Units
 
-(defmacro defunit [suffix] `(defn ~suffix [~'x] (if (number? ~'x) (str ~'x ~(name suffix)) (unnamed ~'x))))
+; TODO: restore this macro?
 
-(defunit px)
-(defunit cm)
-(defunit em)
-(defunit pt)
-(defunit deg)
-(defunit %)
+;(defmacro defunit [suffix] `(defn ~suffix [~'x] (if (number? ~'x) (str ~'x ~(name suffix)) (unnamed ~'x))))
+
+;(defunit px)
+;(defunit cm)
+;(defunit em)
+;(defunit pt)
+;(defunit deg)
+;(defunit %)
+
+(defn px [x] (if (number? x) (str x "px")) (unnamed x))
+(defn cm [x] (if (number? x) (str x "cm")) (unnamed x))
+(defn em [x] (if (number? x) (str x "em")) (unnamed x))
+(defn pt [x] (if (number? x) (str x "pt")) (unnamed x))
+(defn deg [x] (if (number? x) (str x "deg")) (unnamed x))
+(defn % [x] (if (number? x) (str x "%")) (unnamed x))
 
 ;; CSS Value Builders
 
-(defmacro defcssval [id & args]
-  (let [prepare-arg (fn [arg] (if (.contains (name arg) "angle") `(deg ~arg) `(unnamed ~arg)))
-        format-str (str (name id) "(" (join ", " (repeat (count args) "%s")) ")")]
-    `(defn ~id [~@args] (format ~format-str ~@(map prepare-arg args)))))
+; TODO - restore all this stuff?
+
+;(defmacro defcssval [id & args]
+;  (let [prepare-arg (fn [arg] (if (.contains (name arg) "angle") `(deg ~arg) `(unnamed ~arg)))
+;        format-str (str (name id) "(" (join ", " (repeat (count args) "%s")) ")")]
+;    `(defn ~id [~@args] (format ~format-str ~@(map prepare-arg args)))))
 
 ; Used for: color, background-color
 
-(defcssval rgb r g b)
-(defcssval rgba r g b a)
+;(defcssval rgb r g b)
+;(defcssval rgba r g b a)
 
 ; Used for: background, background-image
 
-(defcssval url u)
+;(defcssval url u)
 
 ; Used for: clip
 
-(defcssval rect t r b l)
+;(defcssval rect t r b l)
 
 ; Used for: transform
 
-(defcssval matrix a b c d e f)
-(defcssval matrix3d a b c d e f g h i j k l m n o p)
-(defcssval translate x y)
-(defcssval translate3d x y z)
-(defcssval translateX x)
-(defcssval translateY y)
-(defcssval translateZ z)
-(defcssval scale x y)
-(defcssval scale3d x y z)
-(defcssval scaleX x)
-(defcssval scaleY y)
-(defcssval scaleZ z)
-(defcssval rotate angle)
-(defcssval rotate3d x y z angle)
-(defcssval rotateX angle)
-(defcssval rotateY angle)
-(defcssval rotateZ angle)
-(defcssval skew x-angle y-angle)
-(defcssval skewX angle)
-(defcssval skewY angle)
-(defcssval perspective n)
+; (defcssval matrix a b c d e f)
+; (defcssval matrix3d a b c d e f g h i j k l m n o p)
+; (defcssval translate x y)
+; (defcssval translate3d x y z)
+; (defcssval translateX x)
+; (defcssval translateY y)
+; (defcssval translateZ z)
+; (defcssval scale x y)
+; (defcssval scale3d x y z)
+; (defcssval scaleX x)
+; (defcssval scaleY y)
+; (defcssval scaleZ z)
+; (defcssval rotate angle)
+; (defcssval rotate3d x y z angle)
+; (defcssval rotateX angle)
+; (defcssval rotateY angle)
+; (defcssval rotateZ angle)
+; (defcssval skew x-angle y-angle)
+; (defcssval skewX angle)
+; (defcssval skewY angle)
+; (defcssval perspective n)
 
 ; Used for: transition-timing-function
 
-(defcssval cubic-bezier a b c d)
+;(defcssval cubic-bezier a b c d)
 
 ; Used for: linear-gradient
 
-(defcssval -webkit-linear-gradient d c1 c2)
-(defcssval linear-gradient d c1 c2)
+;(defcssval -webkit-linear-gradient d c1 c2)
+;(defcssval linear-gradient d c1 c2)
 
 ;; Decorators
 
-(defmacro defdecorator [sym arglist body]
-  `(defn ~sym (~arglist (css ~@body)) ([~@arglist ~'t] ((~sym ~@arglist) ~'t))))
+;(defmacro defdecorator [sym arglist body]
+  ;`(defn ~sym (~arglist (css ~@body)) ([~@arglist ~'t] ((~sym ~@arglist) ~'t))))
 
-(defdecorator color [c] (:color c))
+;(defdecorator color [c] (:color c))
 
-(defdecorator transition [x] (:-webkit-transition x :-moz-transition x :transition x))
+(defn color
+  ([c] (css :color c))
+  ([c t] (t (css :color c))))
 
-(defdecorator transition-timing-function [x] (:transition-timing-function x :-webkit-transition-timing-function x))
+; (defdecorator transition [x] (:-webkit-transition x :-moz-transition x :transition x))
 
-(defdecorator transition-delay [x] (:transition-delay x :-webkit-transition-delay x))
+; (defdecorator transition-timing-function [x] (:transition-timing-function x :-webkit-transition-timing-function x))
 
-(defdecorator transition-duration [x] (:transition-duration x :-webkit-transition-duration x))
+; (defdecorator transition-delay [x] (:transition-delay x :-webkit-transition-delay x))
 
-(defdecorator transition-property [x] (:transition-property x :-moz-transition-property x :-webkit-transition-property x :-o-transition-property x))
+; (defdecorator transition-duration [x] (:transition-duration x :-webkit-transition-duration x))
 
-(defdecorator background-gradient [d c1 c2] (
-  :background-color c1
-  :background-image (linear-gradient d c1 c2)
-  :background-image (-webkit-linear-gradient d c1 c2)))
+; (defdecorator transition-property [x] (:transition-property x :-moz-transition-property x :-webkit-transition-property x :-o-transition-property x))
+
+; (defdecorator background-gradient [d c1 c2] (
+;   :background-color c1
+;   :background-image (linear-gradient d c1 c2)
+;   :background-image (-webkit-linear-gradient d c1 c2)))
 
 (def hide (css :display "none"))
 
 (def center (css :margin "0 auto" :text-align "center"))
 
-(defn transform [& xs]
-  (assert (or (< (count xs) 1) (none tag? (butlast xs))))
-  (let [l (last xs)
-        t (if (tag? l) l)
-        xs (if (nil? t) xs (butlast xs))
-        x (join " " xs)
-        c (css :-webkit-transform x :-moz-transform x :-ms-transform x :-o-transform x :transform x)]
-    (if (nil? t) c (c t))))
+; (defn transform [& xs]
+;   (assert (or (< (count xs) 1) (none tag? (butlast xs))))
+;   (let [l (last xs)
+;         t (if (tag? l) l)
+;         xs (if (nil? t) xs (butlast xs))
+;         x (join " " xs)
+;         c (css :-webkit-transform x :-moz-transform x :-ms-transform x :-o-transform x :transform x)]
+;     (if (nil? t) c (c t))))
 
 ;; Character Entities
 
-(defmacro defentity
-  ([id] `(defentity ~id ~id))
-  ([id value] `(def ~id (literal ~(str "&" (name value) ";")))))
+; (defmacro defentity
+;   ([id] `(defentity ~id ~id))
+;   ([id value] `(def ~id (literal ~(str "&" (name value) ";")))))
 
-(defentity nbsp)
-(defentity copyright copy)
-(defentity registered reg)
-(defentity trademark trade)
-(defentity euro)
-(defentity pound)
-(defentity cent)
-(defentity yen)
+; (defentity nbsp)
+; (defentity copyright copy)
+; (defentity registered reg)
+; (defentity trademark trade)
+; (defentity euro)
+; (defentity pound)
+; (defentity cent)
+; (defentity yen)
