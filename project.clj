@@ -1,7 +1,13 @@
-(defproject hyjinks "0.0.0"
+(defproject hyjinks "0.0.1"
   :description "Hyjinks - An HTML generation/templating library"
   :url "http://github.com/rkoeninger/hyjinks"
-  :main hyjinks.core
+  :license {
+    :name "MIT License"
+    :url "http://www.opensource.org/licenses/mit-license.php"
+    :distribution :repo}
+  :repositories [
+    ["clojars" {:sign-releases false}]]
+  :repl-options {:init-ns hyjinks.core}
   :source-paths ["src/shared"]
   :clean-targets ^{:protect false} [
     "target"

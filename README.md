@@ -1,4 +1,5 @@
 [![Build Status](https://travis-ci.org/rkoeninger/hyjinks.svg?branch=master)](https://travis-ci.org/rkoeninger/hyjinks)
+[![Clojars Project](https://img.shields.io/clojars/v/hyjinks.svg)](https://clojars.org/hyjinks)
 
 # hyjinks
 
