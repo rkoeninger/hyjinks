@@ -6,13 +6,19 @@
 
 (enable-console-print!)
 
+(def lang {
+  :hello "Hello"
+})
+
+(defn translate [x]
+  (if (keyword? x) (get lang x) x))
+
 (defn root-view [data owner]
-  (reify
-    om/IRender
+  (reify om/IRender
     (render [_]
-      (hr/render-dom
-        (h/div {:className "whatever"}
-          (h/h1 (h/color "red") "Hello!"))))))
+      (let [dom (h/div {:className "whatever"}
+                  (h/h1 (h/color "red") :hello "!"))]
+        (hr/render-dom dom translate)))))
 
 (defonce app-state (atom {}))
 
