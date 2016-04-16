@@ -8,12 +8,13 @@
   :repositories [
     ["clojars" {:sign-releases false}]]
   :repl-options {:init-ns hyjinks.core}
-  :source-paths ["src/shared"]
+  :source-paths ["src/shared" "src/cljs"]
   :clean-targets ^{:protect false} [
     "target"
     "logs"
     "resources/public/js/compiled"]
   :test-paths ["test"]
+  :jar-exclusions [#"dev" #".html" #"public"]
   :cljsbuild {
     :builds {
       :dev {

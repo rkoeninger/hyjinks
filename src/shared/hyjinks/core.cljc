@@ -102,6 +102,7 @@
           escape-child (if (:no-escape r-opts) identity html-escape)
           child-join (if (:pad-children r-opts) str-join-extra-spaces str-join)]
       (str-join
+        (if (= tag-name "html") "<!DOCTYPE html>")
         "<" tag-name attrs-with-css
         (if (and (empty? items) (not (:both-tags r-opts)))
           " />"
@@ -312,9 +313,15 @@
 
 (def script (tag "script" both-tags no-escape))
 
-(def js (script {:language "text/javascript"}))
+(def js (script {:type "text/javascript"}))
 
-(def import-js (comp js (partial hash-map :src)))
+(defn import-js [& urls] (map #(js {:src %}) urls))
+
+(defn import-css [& urls] (map #(link {:rel "stylesheet" :type "text/css" :href %}) urls))
+
+(defn favicon
+  ([type url] (link {:rel "shortcut icon" :type type :href url}))
+  ([url] (link {:rel "shortcut icon" :href url})))
 
 (defn media-source [url type] (tag "source" {:src url :type type}))
 

@@ -4,7 +4,7 @@
   <groupId>hyjinks</groupId>
   <artifactId>hyjinks</artifactId>
   <packaging>jar</packaging>
-  <version>0.0.1</version>
+  <version>0.0.2-SNAPSHOT</version>
   <name>hyjinks</name>
   <description>Hyjinks - An HTML generation/templating library</description>
   <url>http://github.com/rkoeninger/hyjinks</url>
@@ -18,7 +18,7 @@
   <scm>
     <connection>scm:git:git://github.com/rkoeninger/hyjinks.git</connection>
     <developerConnection>scm:git:ssh://git@github.com/rkoeninger/hyjinks.git</developerConnection>
-    <tag>9dc8a2c87464495fb30c4f5e30cb8817f6a310e3
+    <tag>fc92fa2be04b43c852cfbb827ec21cbfda62caa2
 </tag>
     <url>https://github.com/rkoeninger/hyjinks</url>
   </scm>
@@ -37,7 +37,27 @@
     </testResources>
     <directory>target</directory>
     <outputDirectory>target\classes</outputDirectory>
-    <plugins/>
+    <plugins>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>build-helper-maven-plugin</artifactId>
+        <version>1.7</version>
+        <executions>
+          <execution>
+            <id>add-source</id>
+            <phase>generate-sources</phase>
+            <goals>
+              <goal>add-source</goal>
+            </goals>
+            <configuration>
+              <sources>
+                <source>src\cljs</source>
+              </sources>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
   </build>
   <repositories>
     <repository>
