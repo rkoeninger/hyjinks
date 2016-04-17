@@ -18,7 +18,7 @@
   <scm>
     <connection>scm:git:git://github.com/rkoeninger/hyjinks.git</connection>
     <developerConnection>scm:git:ssh://git@github.com/rkoeninger/hyjinks.git</developerConnection>
-    <tag>fc92fa2be04b43c852cfbb827ec21cbfda62caa2
+    <tag>354f7a2b32d6bd4f43fed4437fe8c2b767d1cc17
 </tag>
     <url>https://github.com/rkoeninger/hyjinks</url>
   </scm>
