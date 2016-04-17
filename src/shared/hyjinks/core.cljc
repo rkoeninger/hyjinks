@@ -50,6 +50,22 @@
       (list `(~'invoke [~'this ~@(last paramses) ~'more] (.applyTo ~'this (concat (list ~@(last paramses)) ~'more))))
       (apply concat (drop 2 parted-record))))))
 
+(defn attr-name [k]
+  (case k
+    :className "class"
+    (lower-case (name k))))
+
+(defn tag->string [{:keys [tag-name attrs css r-opts items]}]
+  (let [attrs-with-css (if (empty? css) attrs (assoc attrs :style (str css)))
+        escape-child (if (:no-escape r-opts) identity html-escape)
+        child-join (if (:pad-children r-opts) str-join-extra-spaces str-join)]
+    (str-join
+      (if (= tag-name "html") "<!DOCTYPE html>")
+      "<" tag-name attrs-with-css
+      (if (and (empty? items) (not (:both-tags r-opts)))
+        " />"
+        [">" (child-join (map escape-child items)) "</" tag-name ">"]))))
+
 ;; Core types
 
 (defrecord RenderOptions []
@@ -62,7 +78,7 @@
   #?(:clj java.lang.Object
      :cljs Object)
   (toString [this]
-    (str-join (map (fn [[k v]] [" " k "=\"" (html-escape v) "\""]) this)))
+    (str-join (map (fn [[k v]] [" " (attr-name k) "=\"" (html-escape v) "\""]) this)))
   #?@(:clj [
     clojure.lang.IFn
     (invoke [this] this)
@@ -97,16 +113,7 @@
 (#?(:clj defrecord-ifn :cljs defrecord) Tag [tag-name attrs css items r-opts]
   #?(:clj java.lang.Object
      :cljs Object)
-  (toString [_]
-    (let [attrs-with-css (if (empty? css) attrs (assoc attrs :style (str css)))
-          escape-child (if (:no-escape r-opts) identity html-escape)
-          child-join (if (:pad-children r-opts) str-join-extra-spaces str-join)]
-      (str-join
-        (if (= tag-name "html") "<!DOCTYPE html>")
-        "<" tag-name attrs-with-css
-        (if (and (empty? items) (not (:both-tags r-opts)))
-          " />"
-          [">" (child-join (map escape-child items)) "</" tag-name ">"]))))
+  (toString [this] (tag->string this))
   #?@(:clj [
     clojure.lang.IFn
     (applyTo [this args] (apply extend-tag this args))]))
@@ -182,7 +189,7 @@
 
 (defn child-item? [x] (not (or (attrs-or-map? x) (css? x) (r-opts? x) (nil? x) (= "" x))))
 
-(defn assoc-attrs [t & {:as key-vals}] (update-in t [:attrs] (merge key-vals)))
+(defn assoc-attrs [t & {:as key-vals}] (update-in t [:attrs] (merge key-vals))) ; TODO merge :className
 
 (defn assoc-css [t & {:as key-vals}] (update-in t [:css] (merge key-vals)))
 
@@ -192,21 +199,53 @@
 
 (defn r-opts [& {:as key-vals}] (merge empty-r-opts key-vals))
 
-(defn tag [tag-name & stuff]
-  (let [attrs (apply merge empty-attrs (filter attrs-or-map? stuff))
-        css (apply merge empty-css (filter css? stuff))
+(defn- starts-with [prefix s] (= prefix (subs s 0 (.length prefix))))
+
+(defn- indexOf [s sub from-index]
+  (let [i (.indexOf s sub from-index)]
+    (if (neg? i) nil i)))
+
+(defn- split-selector [s]
+  (let [i (indexOf s "." 1)
+        j (indexOf s "#" 1)
+        k (cond
+            (not (or i j)) nil
+            (not i) j
+            (not j) i
+            (< j i) j
+            (< i j) i)]
+    (if k
+      (cons (subs s 0 k) (split-selector (subs s k)))
+      (cons s nil))))
+
+(defn- parse-selector [selector]
+  (let [selector-parts (split-selector (name selector))
+        tag-name       (first selector-parts)
+        id-clause      (first (filter (partial starts-with "#") selector-parts))
+        class-clauses  (filter (partial starts-with ".") selector-parts)]
+    {:tag-name    (first selector-parts)
+     :id          (if id-clause (subs id-clause 1))
+     :class-names (mapv #(subs % 1) class-clauses)}))
+
+(defn tag [selector & stuff]
+  (let [{:keys [tag-name id class-names]} (parse-selector selector)
+        attrs (apply merge empty-attrs
+                           (if id {:id id})
+                           (if (seq class-names) {:className (join " " class-names)})
+                           (filter attrs-or-map? stuff))
+        css    (apply merge empty-css (filter css? stuff))
         r-opts (apply merge empty-r-opts (filter r-opts? stuff))
-        items (flatten-seq (filter child-item? stuff))]
+        items  (flatten-seq (filter child-item? stuff))]
     (Tag. tag-name attrs css items r-opts)))
 
-(defn extend-tag [t & stuff]
+(defn extend-tag [{:keys [tag-name attrs css r-opts items] :as t} & stuff]
   (if (empty? stuff)
     t
-    (let [attrs (apply merge (:attrs t) (filter attrs-or-map? stuff))
-          css (apply merge (:css t) (filter css? stuff))
-          r-opts (apply merge (:r-opts t) (filter r-opts? stuff))
-          items (concat (:items t) (flatten-seq (filter child-item? stuff)))]
-      (Tag. (:tag-name t) attrs css items r-opts))))
+    (let [attrs  (apply merge attrs (filter attrs-or-map? stuff))
+          css    (apply merge css (filter css? stuff))
+          r-opts (apply merge r-opts (filter r-opts? stuff))
+          items  (concat items (flatten-seq (filter child-item? stuff)))]
+      (Tag. tag-name attrs css items r-opts))))
 
 (defn literal [& content] (Literal. (str-join content)))
 

@@ -1,8 +1,7 @@
 (ns hyjinks.react
   (:require [hyjinks.core :as h :include-macros true]))
 
-; HyjinksTag -> ReactDom
-(defn render-dom [arg & [f]]
+(defn tag->react [arg & [f]]
   (cond
     (h/tag? arg)
       (let [{:keys [tag-name attrs css items]} arg

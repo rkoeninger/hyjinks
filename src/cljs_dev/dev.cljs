@@ -18,7 +18,7 @@
     (render [_]
       (let [dom (h/div {:className "whatever"}
                   (h/h1 (h/color "red") :hello "!"))]
-        (hr/render-dom dom translate)))))
+        (hr/tag->react dom translate)))))
 
 (defonce app-state (atom {}))
 

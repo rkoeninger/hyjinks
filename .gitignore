@@ -2,6 +2,7 @@ lib/
 classes/
 target/
 checkouts/
+resources/public/js/compiled
 .lein-deps-sum
 .lein-repl-history
 .lein-plugins/

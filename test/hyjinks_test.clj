@@ -147,4 +147,9 @@
     (p "a" "b" "c" "d" "e" "f" "g" "h" "i" "j" "k" "l" "m" "n" "o" "p" "q" "r" "s" "t" "u" "v" "w" "x" "y" "z")
     (apply p ["a" "b" "c" "d" "e" "f" "g" "h" "i" "j" "k" "l" "m" "n" "o" "p" "q" "r" "s" "t" "u" "v" "w" "x" "y" "z"])
     (p ["a" "b" "c" "d" "e" "f" "g" "h" "i" "j" "k" "l" "m" "n" "o" "p" "q" "r" "s" "t" "u" "v" "w" "x" "y" "z"])
-    "<p>abcdefghijklmnopqrstuvwxyz</p>"))
+    "<p>abcdefghijklmnopqrstuvwxyz</p>")
+
+  ; tag function can take string/symbol/keyword with css selector syntax
+  (is (= (:attrs (tag "div.clear#content")) (attrs :id "content" :className "clear")))
+  (is (= (:attrs (tag 'div.clear#content)) (attrs :id "content" :className "clear")))
+  (is (= (:attrs (tag :div.clear#content)) (attrs :id "content" :className "clear"))))
