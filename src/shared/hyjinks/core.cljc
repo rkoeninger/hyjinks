@@ -199,7 +199,7 @@
 
 (defn r-opts [& {:as key-vals}] (merge empty-r-opts key-vals))
 
-(defn- starts-with [prefix s] (= prefix (subs s 0 (.length prefix))))
+(defn- starts-with [prefix s] (= prefix (subs s 0 (#?(:clj .length :cljs .-length) prefix))))
 
 (defn- indexOf [s sub from-index]
   (let [i (.indexOf s sub from-index)]

@@ -16,7 +16,7 @@
 (defn root-view [data owner]
   (reify om/IRender
     (render [_]
-      (let [dom (h/div {:className "whatever"}
+      (let [dom (h/tag "div.whatever"
                   (h/h1 (h/color "red") :hello "!"))]
         (hr/tag->react dom translate)))))
 
