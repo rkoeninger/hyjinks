@@ -153,3 +153,11 @@
   (is (= (:attrs (tag "div.clear#content")) (attrs :id "content" :className "clear")))
   (is (= (:attrs (tag 'div.clear#content)) (attrs :id "content" :className "clear")))
   (is (= (:attrs (tag :div.clear#content)) (attrs :id "content" :className "clear"))))
+
+(deftest class-name-attribute
+  (testing "when :className attribute is set to a list"
+    (let [tag (div {:className ["a" "b" "c"]})]
+      (is (sequential? (get-in tag [:attrs :className])))
+
+      (testing "it should be converted to a space-separated list"
+        (is (= (tag->string tag) "<div class=\"a b c\" />"))))))

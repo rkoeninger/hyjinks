@@ -56,12 +56,14 @@
     (lower-case (name k))))
 
 (defn tag->string [{:keys [tag-name attrs css r-opts items]}]
-  (let [attrs-with-css (if (empty? css) attrs (assoc attrs :style (str css)))
+  (let [{:keys [className]} attrs
+        attrs (if (sequential? className) (assoc attrs :className (clojure.string/join " " className)) attrs)
+        attrs+css (if (empty? css) attrs (assoc attrs :style (str css)))
         escape-child (if (:no-escape r-opts) identity html-escape)
         child-join (if (:pad-children r-opts) str-join-extra-spaces str-join)]
     (str-join
       (if (= tag-name "html") "<!DOCTYPE html>")
-      "<" tag-name attrs-with-css
+      "<" tag-name attrs+css
       (if (and (empty? items) (not (:both-tags r-opts)))
         " />"
         [">" (child-join (map escape-child items)) "</" tag-name ">"]))))
