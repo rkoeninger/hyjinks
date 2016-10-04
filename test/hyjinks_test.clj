@@ -40,7 +40,7 @@
 
   ; Tag attributes can be specified with hash-maps
   (should-equal-str
-    (p {:attr :value} "Content")
+    (p {:attr "value"} "Content")
     "<p attr=\"value\">Content</p>")
 
   ; Tags can be composed like normal functions
@@ -78,7 +78,7 @@
 
   ; CSS can be applied with a CSS object
   (should-equal-str
-    (div (css :color :red) (br))
+    (div (css :color "red") (br))
     "<div style=\"; color: red;\"><br /></div>")
 
   ; Empty strings and nil get ignored
@@ -156,8 +156,29 @@
 
 (deftest class-name-attribute
   (testing "when :className attribute is set to a list"
-    (let [tag (div {:className ["a" "b" "c"]})]
-      (is (sequential? (get-in tag [:attrs :className])))
+    (let [t (div {:className ["a" "b" "c"]})]
+      (is (= "a b c" (get-in t [:attrs :className])))
 
       (testing "it should be converted to a space-separated list"
-        (is (= (tag->string tag) "<div class=\"a b c\" />"))))))
+        (is (= (tag->string t) "<div class=\"a b c\" />")))
+
+      (testing "and tag is applied to additional :className attribute"
+        (let [t (t {:className ["d" "e"]})]
+
+          (testing ":className should be flattened into a string"
+            (is (= "a b c d e" (get-in t [:attrs :className])))
+            (is (= (tag->string t) "<div class=\"a b c d e\" />")))))))
+
+  (testing "when :className attribute is set to an empty list"
+    (let [t (div {:className []})]
+
+      (testing "it should not be emitted"
+        (is (= (tag->string t) "<div />")))))
+
+  (testing "nil values should be ignored in className list"
+    (let [t (div {:className ["abc" nil "def"]})]
+      (is (= (tag->string t) "<div class=\"abc def\" />"))))
+
+  (testing "should be able to combine class names given as list with class name given as string"
+    (let [t ((tag "div.abc" {:className "def"}) {:className "ghi"})]
+      (is (= (get-in t [:attrs :className]) "abc def ghi")))))
