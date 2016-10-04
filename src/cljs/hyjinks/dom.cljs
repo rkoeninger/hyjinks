@@ -12,7 +12,7 @@
           (reduce
             (fn [e [k v]]
               (doto e (.setAttribute (h/attr-name k) (str v))))
-            (js/document.createElement (upper-case tag-name))
+            (js/document.createElement tag-name)
             attrs+css)
           items))
     f (js/document.createTextNode (str (f arg)))

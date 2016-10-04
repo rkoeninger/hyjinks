@@ -50,16 +50,16 @@
 
   ; String content gets escaped, unless it's a literal
   (should-equal-str
-    (p "<Content>")
-    "<p>&lt;Content&gt;</p>")
+    (p "<content>")
+    "<p>&lt;content&gt;</p>")
   (should-equal-str
-    (p (literal "<Content>"))
-    "<p><Content></p>")
+    (p (literal "<content>"))
+    "<p><content></p>")
 
   ; Empty tags have trailing '/' for XHTML compliance
   (should-equal-str
-    (p (tag "Content"))
-    "<p><Content /></p>")
+    (p (tag "content"))
+    "<p><content></content></p>")
 
   ; Tags can have special rendering options specified, like :both-tags
   (should-equal-str
@@ -160,24 +160,24 @@
       (is (= "a b c" (get-in t [:attrs :className])))
 
       (testing "it should be converted to a space-separated list"
-        (is (= (tag->string t) "<div class=\"a b c\" />")))
+        (is (= (tag->string t) "<div class=\"a b c\"></div>")))
 
       (testing "and tag is applied to additional :className attribute"
         (let [t (t {:className ["d" "e"]})]
 
           (testing ":className should be flattened into a string"
             (is (= "a b c d e" (get-in t [:attrs :className])))
-            (is (= (tag->string t) "<div class=\"a b c d e\" />")))))))
+            (is (= (tag->string t) "<div class=\"a b c d e\"></div>")))))))
 
   (testing "when :className attribute is set to an empty list"
     (let [t (div {:className []})]
 
       (testing "it should not be emitted"
-        (is (= (tag->string t) "<div />")))))
+        (is (= (tag->string t) "<div></div>")))))
 
   (testing "nil values should be ignored in className list"
     (let [t (div {:className ["abc" nil "def"]})]
-      (is (= (tag->string t) "<div class=\"abc def\" />"))))
+      (is (= (tag->string t) "<div class=\"abc def\"></div>"))))
 
   (testing "should be able to combine class names given as list with class name given as string"
     (let [t ((tag "div.abc" {:className "def"}) {:className "ghi"})]

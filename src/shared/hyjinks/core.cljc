@@ -47,14 +47,14 @@
 
 (defn tag->string [{:keys [tag-name attrs css r-opts items]}]
   (let [{:keys [className]} attrs
-        attrs (if (sequential? className) (assoc attrs :className (clojure.string/join " " className)) attrs)
+        attrs (if (sequential? className) (assoc attrs :className (join " " className)) attrs)
         attrs+css (if (empty? css) attrs (assoc attrs :style (str css)))
         escape-child (if (:no-escape r-opts) identity html-escape)
         child-join (if (:pad-children r-opts) str-join-extra-spaces str-join)]
     (str-join
       (if (= tag-name "html") "<!DOCTYPE html>")
       "<" tag-name attrs+css
-      (if (and (empty? items) (not (:both-tags r-opts)))
+      (if (:void-element r-opts)
         " />"
         [">" (child-join (map escape-child items)) "</" tag-name ">"]))))
 
@@ -258,8 +258,6 @@
 ;; Declaring rendering options
 
 (def void-element (r-opts :void-element true))
-(def self-close (r-opts :self-close true))
-(def both-tags (r-opts :both-tags true))
 (def no-escape (r-opts :no-escape true))
 (def pad-children (r-opts :pad-children true))
 
@@ -350,7 +348,7 @@
 
 (defn !-- [& content] (literal (str-join "<!-- " content " -->")))
 
-(def script (tag "script" both-tags no-escape))
+(def script (tag "script" no-escape))
 
 (def js (script {:type "text/javascript"}))
 
