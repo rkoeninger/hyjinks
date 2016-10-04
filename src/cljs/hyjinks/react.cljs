@@ -5,8 +5,6 @@
   (cond
     (h/tag? arg)
       (let [{:keys [tag-name attrs css items]} arg
-      	    {:keys [className]} attrs
-            attrs (if (sequential? className) (assoc attrs :className (clojure.string/join " " className)) attrs)
             attrs+css (if (empty? css) attrs (assoc attrs :style css))]
         (.apply (aget js/React.DOM tag-name) nil (into-array (cons (clj->js attrs+css) (map #(tag->react % f) items)))))
     f (f arg)
