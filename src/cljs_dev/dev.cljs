@@ -17,7 +17,7 @@
 (defn root-view [data owner]
   (reify om/IRender
     (render [_]
-      (let [t (h/tag "div.whatever"
+      (let [t (h/tag "div.whatever" {:title [:hello "!"]}
                 (h/h1 (h/color "red") :hello "!"))]
         (hr/tag->react t translate)))))
 
@@ -31,6 +31,6 @@
       app-state
       {:target (js/document.getElementById "react-content")})
     (.appendChild (js/document.getElementById "dom-content")
-      (let [t (h/div {:className "whatever"}
+      (let [t (h/div {:className "whatever" :title [:hello "!"]}
                 (h/h1 (h/color "blue") :hello "!"))]
         (hd/tag->dom t translate)))))

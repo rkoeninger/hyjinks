@@ -1,5 +1,12 @@
 (ns hyjinks.dom
+  (:use [clojure.string :only (join trim)])
   (:require [hyjinks.core :as h :include-macros true]))
+
+(defn- apply-flat-join [f x]
+  (cond
+    (not f)         x
+    (sequential? x) (join "" (map (comp trim str f) (flatten x)))
+    :else           (f x)))
 
 (defn tag->dom [arg & [f]]
   (cond
@@ -11,7 +18,7 @@
             (doto e (.appendChild (tag->dom child f))))
           (reduce
             (fn [e [k v]]
-              (doto e (.setAttribute (h/attr-name k) (str v))))
+              (doto e (.setAttribute (h/attr-name k) (apply-flat-join f v))))
             (js/document.createElement tag-name)
             attrs+css)
           items))
