@@ -40,7 +40,7 @@
     (escape x escape-chars)
     x))
 
-(defn- attr-name [k]
+(defn attr-name [k]
   (case k
     :className "class"
     (lower-case (name k))))
