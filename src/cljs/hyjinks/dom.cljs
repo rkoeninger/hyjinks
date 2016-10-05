@@ -1,11 +1,11 @@
 (ns hyjinks.dom
-  (:use [clojure.string :only (join trim)])
+  (:use [clojure.string :only (join)])
   (:require [hyjinks.core :as h :include-macros true]))
 
 (defn- apply-flat-join [f x]
   (cond
     (not f)         x
-    (sequential? x) (join "" (map (comp trim str f) (flatten x)))
+    (sequential? x) (join "" (map (comp str f) (flatten x)))
     :else           (f x)))
 
 (defn tag->dom [arg & [f]]
