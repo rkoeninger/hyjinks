@@ -154,6 +154,13 @@
   (is (= (:attrs (tag 'div.clear#content)) (attrs :id "content" :className "clear")))
   (is (= (:attrs (tag :div.clear#content)) (attrs :id "content" :className "clear"))))
 
+(deftest child-items
+  (testing "when some child items are lists"
+    (let [t (div "numbers:" [1 2 3])]
+
+      (testing "child items should be flattened into one long list"
+        (is (= (:items t) ["numbers:" 1 2 3]))))))
+
 (deftest class-name-attribute
   (testing "when :className attribute is set to a list"
     (let [t (div {:className ["a" "b" "c"]})]
