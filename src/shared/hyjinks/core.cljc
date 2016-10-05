@@ -195,7 +195,7 @@
 
 (defn- extend-r-opts [r-opts more] (prune-map (apply merge r-opts more)))
 
-(defn- extend-items [items more] (vec (concat items more)))
+(defn- extend-items [items more] (vec (flatten (concat items more))))
 
 (defn attrs [& {:as key-vals}] (extend-attrs (Attrs.) key-vals))
 
