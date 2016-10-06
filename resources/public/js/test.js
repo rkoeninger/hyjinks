@@ -1,5 +1,5 @@
-var page = require('webpage').create();
-var url = require('system').args[1];
+var page = require("webpage").create();
+var url = "./resources/public/index.html";
 
 page.onConsoleMessage = function (message) {
     console.log(message);
@@ -11,5 +11,4 @@ page.onCallback = function (data) {
     }
 };
 
-page.open(url, function (status) {
-});
+page.open(url);
