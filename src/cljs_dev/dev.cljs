@@ -1,36 +1,29 @@
-(ns hyjinks.react.dev
-  (:require [hyjinks.core :as h :include-macros true]
-            [hyjinks.react :as hr]
-            [hyjinks.dom :as hd]
+(ns hyjinks.browser.dev
+  (:require [cljs.test :refer-macros [deftest is testing run-tests]]
             [om.core :as om :include-macros true]
-            [om.dom :as dom :include-macros true]))
+            [om.dom :as dom :include-macros true]
+            [hyjinks.core :as h :include-macros true]
+            [hyjinks.react :as hr]
+            [hyjinks.dom :as hd]))
 
 (enable-console-print!)
 
-(def lang {
-  :hello "Hello"
-})
+(deftest sample-test
+  (testing "should always pass"
+    (is true))
 
-(defn translate [x]
-  (if (keyword? x) (get lang x) x))
+  #_ (testing "should always fail"
+    (is false)))
 
-(defn root-view [data owner]
-  (reify om/IRender
-    (render [_]
-      (let [t (h/tag "div.whatever" {:title [:hello "!"]}
-                (h/h1 (h/color "red") :hello "!"))]
-        (hr/tag->react t translate)))))
+(defn end [success]
+  (if js/window.callPhantom
+    (js/window.callPhantom #js {:exit (if success 0 1)})
+    (set! (.-innerHTML (js/document.getElementById "results")) (if success "Success" "Failure"))))
 
-(defonce app-state (atom {}))
+(defn run []
+  (run-tests 'hyjinks.browser.dev))
 
-(set!
-  (.-onload js/window)
-  (fn []
-    (om/root
-      root-view
-      app-state
-      {:target (js/document.getElementById "react-content")})
-    (.appendChild (js/document.getElementById "dom-content")
-      (let [t (h/div {:className "whatever" :title [:hello "!"]}
-                (h/h1 (h/color "blue") :hello "!"))]
-        (hd/tag->dom t translate)))))
+(defmethod cljs.test/report [:cljs.test/default :end-run-tests] [m]
+  (end (cljs.test/successful? m)))
+
+(set! (.-onload js/window) run)

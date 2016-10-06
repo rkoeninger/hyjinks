@@ -20,19 +20,18 @@
       :dev {
         :source-paths ["src/shared" "src/cljs" "src/cljs_dev"]
         :compiler {
-          :output-to "resources/public/js/compiled/hyjinks_react.js"
+          :output-to "resources/public/js/compiled/hyjinks_browser.js"
           :output-dir "resources/public/js/compiled/out"
           :asset-path "js/compiled/out"
           :optimizations :none
-          :main hyjinks.react.dev
+          :main hyjinks.browser.dev
           :source-map true
           :source-map-timestamp true
           :cache-analysis true}}
       :min {
         :source-paths ["src/shared" "src/cljs"]
         :compiler {
-          :output-to "resources/public/js/compiled/hyjinks_react.js"
-          :main hyjinks.react
+          :output-to "resources/public/js/compiled/hyjinks_browser.js"
           :optimizations :advanced
           :pretty-print false}}}}
   :plugins [
