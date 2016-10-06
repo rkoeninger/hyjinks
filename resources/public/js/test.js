@@ -12,7 +12,4 @@ page.onCallback = function (data) {
 };
 
 page.open(url, function (status) {
-    page.evaluate(function() {
-    	setTimeout(hyjinks.browser.dev.run, 1000);
-    });
 });
