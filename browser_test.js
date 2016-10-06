@@ -16,6 +16,6 @@ page.onCallback = function (data) {
   }
 };
 
-page.open(url);
-
-console.log("Hi");
+setTimeout(function () {
+  page.open(url);
+}, 1000);
