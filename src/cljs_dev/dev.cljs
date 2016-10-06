@@ -15,7 +15,10 @@
               (h/span {:title [:hello "!"]})
               "more text")
             (fn [x] (case x :hello "Hi" x)))]
-    (is (= 3 (.-length (.-childNodes d))))))
+    (is (= 3 (.-length (.-childNodes d))))
+    (is (= "some text" (.-textContent (aget (.-childNodes d) 0))))
+    (is (= "more text" (.-textContent (aget (.-childNodes d) 2))))
+    (is (= "Hi!" (.getAttribute (aget (.-children d) 0) "title")))))
 
 (defmethod cljs.test/report [:cljs.test/default :end-run-tests] [m]
   (let [success (cljs.test/successful? m)]
