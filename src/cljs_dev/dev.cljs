@@ -24,7 +24,7 @@
 (defmethod cljs.test/report [:cljs.test/default :end-run-tests] [m]
   (let [success (cljs.test/successful? m)]
     (if js/window.callPhantom
-      (js/window.callPhantom #js {:exit (if success 0 1)})
+      (js/window.callPhantom #js {:exitCode (if success 0 1)})
       (js/setTimeout
         #(set! (.-innerHTML (js/document.getElementById "results")) (if success "Success" "Failure"))
         1000))))

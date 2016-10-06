@@ -11,11 +11,9 @@ page.onConsoleMessage = function (message) {
 };
 
 page.onCallback = function (data) {
-  if (data && data.hasOwnProperty("exit")) {
-    phantom.exit(data.exit);
+  if (data && data.hasOwnProperty("exitCode")) {
+    phantom.exit(data.exitCode);
   }
 };
 
-setTimeout(function () {
-  page.open(url);
-}, 1000);
+page.open(url);
