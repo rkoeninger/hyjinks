@@ -17,3 +17,5 @@ page.onCallback = function (data) {
 };
 
 page.open(url);
+
+console.log("Hi");
