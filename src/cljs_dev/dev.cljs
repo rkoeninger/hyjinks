@@ -15,15 +15,11 @@
   #_ (testing "should always fail"
     (is false)))
 
-(defn end [success]
-  (if js/window.callPhantom
-    (js/window.callPhantom #js {:exit (if success 0 1)})
-    (set! (.-innerHTML (js/document.getElementById "results")) (if success "Success" "Failure"))))
-
-(defn run []
-  (run-tests 'hyjinks.browser.dev))
-
 (defmethod cljs.test/report [:cljs.test/default :end-run-tests] [m]
-  (end (cljs.test/successful? m)))
+  (let [success (cljs.test/successful? m)]
+    (if js/window.callPhantom
+      (js/window.callPhantom #js {:exit (if success 0 1)})
+      (set! (.-innerHTML (js/document.getElementById "results")) (if success "Success" "Failure")))))
 
-(set! (.-onload js/window) run)
+(set! (.-onload js/window)
+  (run-tests 'hyjinks.browser.dev))
