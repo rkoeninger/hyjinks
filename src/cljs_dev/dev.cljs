@@ -8,13 +8,14 @@
 
 (enable-console-print!)
 
-(deftest dom-transform (is true)
+(deftest dom-transform
   (let [d (hd/tag->dom
             (h/div {:className ["class1" "class2"]}
               "some text"
               (h/span {:title [:hello "!"]})
               "more text")
             (fn [x] (case x :hello "Hi" x)))]
+    (is (= "class1 class2" (.getAttribute d "class")))
     (is (= 3 (.-length (.-childNodes d))))
     (is (= "some text" (.-textContent (aget (.-childNodes d) 0))))
     (is (= "more text" (.-textContent (aget (.-childNodes d) 2))))
