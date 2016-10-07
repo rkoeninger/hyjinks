@@ -30,4 +30,4 @@
         1000))))
 
 (set! (.-onload js/window)
-  (run-tests 'hyjinks.browser.dev))
+  #(run-tests 'hyjinks.browser.dev))
