@@ -35,3 +35,5 @@
     (js/setTimeout
       #(run-tests 'hyjinks.browser.dev)
       1000)))
+
+(println "Is this working or not?")
