@@ -30,10 +30,4 @@
         1000))))
 
 (set! (.-onload js/window)
-  (fn []
-    (println "Running tests...")
-    (js/setTimeout
-      #(run-tests 'hyjinks.browser.dev)
-      1000)))
-
-(println "Is this working or not?")
+  #(run-tests 'hyjinks.browser.dev))
