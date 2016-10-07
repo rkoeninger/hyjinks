@@ -16,4 +16,11 @@ page.onCallback = function (data) {
   }
 };
 
-page.open(url);
+page.open(url, function (status) {
+  if (status !== "success") {
+    console.log("Unable to access test site");
+    phantom.exit(1);
+  } else {
+    console.log("Page loaded...");
+  }
+});
