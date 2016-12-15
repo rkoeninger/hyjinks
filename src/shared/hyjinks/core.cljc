@@ -14,7 +14,7 @@
 
 (defn- str-join [& items] (join "" (flatten items)))
 
-(defn- interposep [sep pred [x & [y :as more]]]
+(defn- interposep [sep pred [x & [y :as more] :as coll]]
   (cond
     (empty? coll)      (empty coll)
     (= 1 (count coll)) coll
