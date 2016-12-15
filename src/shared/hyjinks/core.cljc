@@ -14,12 +14,12 @@
 
 (defn- str-join [& items] (join "" (flatten items)))
 
-(defn- interposep [sep pred coll]
+(defn- interposep [sep pred [x & [y :as more]]]
   (cond
-    (empty? coll)                     (empty coll)
-    (= 1 (count coll))                coll
-    (pred (first coll) (second coll)) (concat [(first coll) sep] (interposep sep pred (rest coll)))
-    :else                             (concat [(first coll)] (interposep sep pred (rest coll)))))
+    (empty? coll)      (empty coll)
+    (= 1 (count coll)) coll
+    (pred x y)         (concat [x sep] (interposep sep pred more))
+    :else              (concat [x] (interposep sep pred more))))
 
 (defn- str-join-extra-spaces [& items]
   (->> items
