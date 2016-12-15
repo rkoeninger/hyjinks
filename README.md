@@ -5,8 +5,6 @@
 
 HTML generation/templating library for Clojure/ClojureScript.
 
-More history can be found in [this Gist of mine](https://gist.github.com/rkoeninger/cfe4f2814eb3301cb772).
-
 ## Concept & Usage
 
 Hyjinks is a set of functions that map directly to html tag names. So the code you use to generate your markup looks just like the markup itself:
