@@ -16,11 +16,10 @@
 
 (defn- interposep [sep pred coll]
   (cond
-    (empty? coll) (empty coll)
-    (= 1 (count coll)) coll
-    :else (if (pred (first coll) (second coll))
-      (concat [(first coll) sep] (interposep sep pred (rest coll)))
-      (concat [(first coll)] (interposep sep pred (rest coll))))))
+    (empty? coll)                     (empty coll)
+    (= 1 (count coll))                coll
+    (pred (first coll) (second coll)) (concat [(first coll) sep] (interposep sep pred (rest coll)))
+    :else                             (concat [(first coll)] (interposep sep pred (rest coll)))))
 
 (defn- str-join-extra-spaces [& items]
   (->> items
