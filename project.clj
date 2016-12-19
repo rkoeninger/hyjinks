@@ -8,13 +8,13 @@
   :repositories [
     ["clojars" {:sign-releases false}]]
   :repl-options {:init-ns hyjinks.core}
-  :source-paths ["src/shared" "src/cljs"]
+  :source-paths ["src/shared" "src/cljs" "src/server_dev"]
   :clean-targets ^{:protect false} [
     "target"
     "logs"
     "resources/public/js/compiled"]
   :test-paths ["test"]
-  :jar-exclusions [#"dev" #".html" #"public"]
+  :jar-exclusions [#"dev" #".html" #"public" #"server_dev"]
   :cljsbuild {
     :builds {
       :dev {
@@ -35,10 +35,21 @@
           :optimizations :advanced
           :pretty-print false}}}}
   :plugins [
-    [lein-cljsbuild "1.1.1"]]
+    [lein-cljsbuild "1.1.1"]
+    [lein-figwheel "0.4.0"]]
   :dependencies [
     [org.clojure/clojure "1.8.0"]
     [org.clojure/clojurescript "1.8.40"]
-    [org.omcljs/om "0.9.0"]]
+    [ring/ring-core "1.4.0"]
+    [ring-middleware-format "0.6.0"]
+    [compojure "1.4.0"]
+    [figwheel "0.4.0"]]
   :exclusions
-    [org.clojure/clojure])
+    [org.clojure/clojure]
+  :figwheel {
+    :http-server-root "public" ; default and assumes "resources"
+    :server-port 3449
+    ; :nrepl-port 7888
+    :css-dirs ["resources/public/css"]
+    :ring-handler hyjinks.server.dev/app
+    :server-logfile "logs/figwheel_server.log"})

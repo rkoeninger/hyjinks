@@ -1,9 +1,6 @@
 (ns hyjinks.browser.dev
   (:require [cljs.test :refer-macros [deftest is testing run-tests]]
-            [om.core :as om :include-macros true]
-            [om.dom :as dom :include-macros true]
             [hyjinks.core :as h :include-macros true]
-            [hyjinks.react :as hr]
             [hyjinks.dom :as hd]))
 
 (enable-console-print!)
