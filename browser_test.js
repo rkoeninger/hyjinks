@@ -4,7 +4,7 @@
 /*global phantom*/
 
 var page = require("webpage").create();
-var url = "./resources/public/index.html";
+var url = "http://localhost:3449/";
 
 page.onConsoleMessage = function (message) {
   console.log(message);
