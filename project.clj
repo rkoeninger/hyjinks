@@ -8,7 +8,7 @@
   :repositories [
     ["clojars" {:sign-releases false}]]
   :repl-options {:init-ns hyjinks.core}
-  :source-paths ["src/shared" "src/cljs" "src/server_dev"]
+  :source-paths ["src/shared" "src/server_dev"]
   :clean-targets ^{:protect false} [
     "target"
     "logs"
@@ -35,15 +35,18 @@
           :optimizations :advanced
           :pretty-print false}}}}
   :plugins [
-    [lein-cljsbuild "1.1.1"]
+    [lein-cljsbuild "1.1.0"]
     [lein-figwheel "0.4.0"]]
   :dependencies [
-    [org.clojure/clojure "1.8.0"]
-    [org.clojure/clojurescript "1.8.40"]
+    [org.clojure/clojure "1.7.0"]
+    [org.clojure/clojurescript "1.7.122"]
     [ring/ring-core "1.4.0"]
     [ring-middleware-format "0.6.0"]
     [compojure "1.4.0"]
-    [figwheel "0.4.0"]]
+    [figwheel "0.4.0"]
+    [org.omcljs/om "0.9.0" :exclusions [cljsjs/react]]
+    [cljs-react-test "0.1.3-SNAPSHOT"]
+    [cljsjs/react-with-addons "0.13.3-0"]]
   :exclusions
     [org.clojure/clojure]
   :figwheel {
