@@ -8,13 +8,13 @@
   :repositories [
     ["clojars" {:sign-releases false}]]
   :repl-options {:init-ns hyjinks.core}
-  :source-paths ["src/shared" "src/server_dev"]
+  :source-paths ["src/shared" "src/cljs" "src/server_dev"]
   :clean-targets ^{:protect false} [
     "target"
     "logs"
     "resources/public/js/compiled"]
   :test-paths ["test"]
-  :jar-exclusions [#"dev" #".html" #"public" #"server_dev"]
+  :jar-exclusions [#"dev" #".html" #"public" #"server"]
   :cljsbuild {
     :builds {
       :dev {
@@ -33,7 +33,8 @@
         :compiler {
           :output-to "resources/public/js/compiled/hyjinks_browser.js"
           :optimizations :advanced
-          :pretty-print false}}}}
+          :pretty-print false}}}
+    :test-commands {"test" ["phantomjs" "browser_test.js"]}}
   :plugins [
     [lein-cljsbuild "1.1.0"]
     [lein-figwheel "0.4.0"]]
