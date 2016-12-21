@@ -1,5 +1,7 @@
 (ns hyjinks.core
-  (:use [clojure.string :only (escape split join capitalize lower-case trim)]))
+  (:use [clojure.string :only (escape split join capitalize lower-case trim)])
+  #?(:clj (:use [hyjinks.macros])
+     :cljs (:require-macros [hyjinks.macros :refer [deftag deftags]])))
 
 ;; Forward definitions to resolve circular references
 
@@ -27,6 +29,12 @@
     (interposep " " #(not (or (tag? %1) (tag? %2))))
     (apply str)))
 
+(defn- starts-with [prefix s] (= prefix (subs s 0 (#?(:clj .length :cljs .-length) prefix))))
+
+(defn- indexOf [s sub from-index]
+  (let [i (.indexOf s sub from-index)]
+    (if (neg? i) nil i)))
+
 (def ^{:private true} escape-chars {
   \< "&lt;"
   \> "&gt;"
@@ -39,12 +47,39 @@
     (escape x escape-chars)
     x))
 
-(defn attr-name [k]
+(defn attr-name
+  "Converts an HTML Attribute name from the convention
+   used in Hyjinks to the actual name used in HTML."
+  [k]
   (case k
     :className "class"
     (lower-case (name k))))
 
-(defn tag->string [{:keys [tag-name attrs css r-opts items]}]
+(defn- split-selector [s]
+  (let [i (indexOf s "." 1)
+        j (indexOf s "#" 1)
+        k (cond
+            (not (or i j)) nil
+            (not i) j
+            (not j) i
+            (< j i) j
+            (< i j) i)]
+    (if k
+      (cons (subs s 0 k) (split-selector (subs s k)))
+      (cons s nil))))
+
+(defn- parse-selector [selector]
+  (let [selector-parts (split-selector (name selector))
+        tag-name       (first selector-parts)
+        id-clause      (first (filter (partial starts-with "#") selector-parts))
+        class-clauses  (filter (partial starts-with ".") selector-parts)]
+    {:tag-name    (first selector-parts)
+     :id          (if id-clause (subs id-clause 1))
+     :class-names (mapv #(subs % 1) class-clauses)}))
+
+(defn tag->string
+  "Serializes a tag and its children into an HTML string."
+  [{:keys [tag-name attrs css r-opts items]}]
   (let [{:keys [className]} attrs
         attrs (if (sequential? className) (assoc attrs :className (join " " className)) attrs)
         attrs+css (if (empty? css) attrs (assoc attrs :style (str css)))
@@ -157,15 +192,31 @@
 
 ;; Builder functions
 
-(defn literal? [x] (instance? Literal x))
+(defn literal?
+  "Checks if argument is a Literal and will be passed
+   through rendering without being escaped or encoded."
+  [x]
+  (instance? Literal x))
 
-(defn tag? [x] (instance? Tag x))
+(defn tag?
+  "Checks if argument is a Tag."
+  [x]
+  (instance? Tag x))
 
-(defn css? [x] (instance? Css x))
+(defn css?
+  "Checks if argument is a collection of CSS attributes."
+  [x]
+  (instance? Css x))
 
-(defn attrs? [x] (instance? Attrs x))
+(defn attrs?
+  "Checks if argument is a collection of HTML attributes."
+  [x]
+  (instance? Attrs x))
 
-(defn r-opts? [x] (instance? RenderOptions x))
+(defn r-opts?
+  "Checks if argument is a collection of Rendering Options."
+  [x]
+  (instance? RenderOptions x))
 
 (defn- attrs-or-map? [x] (or (attrs? x) (and (map? x) (not (record? x)))))
 
@@ -196,41 +247,26 @@
 
 (defn- extend-items [items more] (vec (flatten (concat items more))))
 
-(defn attrs [& {:as key-vals}] (extend-attrs (Attrs.) key-vals))
+(defn attrs
+  "Creates a new collection of HTML Attributes from the given
+   sequence of key-values."
+  [& {:as key-vals}]
+  (extend-attrs (Attrs.) key-vals))
 
-(defn css [& {:as key-vals}] (extend-css (Css.) key-vals))
+(defn css
+  "Creates a new collection of CSS Attributes from the given
+   sequence of key-values."
+  [& {:as key-vals}]
+  (extend-css (Css.) key-vals))
 
 (defn- r-opts [& {:as key-vals}] (extend-r-opts (RenderOptions.) key-vals))
 
-(defn- starts-with [prefix s] (= prefix (subs s 0 (#?(:clj .length :cljs .-length) prefix))))
-
-(defn- indexOf [s sub from-index]
-  (let [i (.indexOf s sub from-index)]
-    (if (neg? i) nil i)))
-
-(defn- split-selector [s]
-  (let [i (indexOf s "." 1)
-        j (indexOf s "#" 1)
-        k (cond
-            (not (or i j)) nil
-            (not i) j
-            (not j) i
-            (< j i) j
-            (< i j) i)]
-    (if k
-      (cons (subs s 0 k) (split-selector (subs s k)))
-      (cons s nil))))
-
-(defn- parse-selector [selector]
-  (let [selector-parts (split-selector (name selector))
-        tag-name       (first selector-parts)
-        id-clause      (first (filter (partial starts-with "#") selector-parts))
-        class-clauses  (filter (partial starts-with ".") selector-parts)]
-    {:tag-name    (first selector-parts)
-     :id          (if id-clause (subs id-clause 1))
-     :class-names (mapv #(subs % 1) class-clauses)}))
-
-(defn tag [selector & stuff]
+(defn tag
+  "Creates a new Tag with the given child tags, HTML Attributes,
+   CSS Attributes and Rendering Options. Tag name argument can
+   use CSS selector syntax to provide an id and CSS class names
+   in addition to a tag name."
+  [selector & stuff]
   (let [{:keys [tag-name id class-names]} (parse-selector selector)
         attrs  (extend-attrs
                  (Attrs.)
@@ -243,7 +279,10 @@
         items  (extend-items  []               (filter child-item? stuff))]
     (Tag. tag-name attrs css items r-opts)))
 
-(defn extend-tag [{:keys [tag-name attrs css r-opts items] :as t} & stuff]
+(defn extend-tag
+  "Merges a tag with additional child tags, HTML Attributes,
+   CSS Attributes and Rendering Options."
+  [{:keys [tag-name attrs css r-opts items] :as t} & stuff]
   (if (empty? stuff)
     t
     (let [attrs  (extend-attrs  attrs  (filter attrs-or-map? stuff))
@@ -252,148 +291,163 @@
           items  (extend-items  items  (filter child-item? stuff))]
       (Tag. tag-name attrs css items r-opts))))
 
-(defn literal [& content] (Literal. (str-join content)))
+(defn literal
+  "Creates a new Literal that will be passed through rendering without
+   being escaped or encoded. It adds no additional space between arguments."
+  [& content]
+  (Literal. (str-join content)))
 
 ;; Declaring rendering options
 
-(def void-element (r-opts :void-element true))
-(def no-escape (r-opts :no-escape true))
-(def pad-children (r-opts :pad-children true))
+(def void-element
+  "Indicates that this tag cannot have children and will
+   be rendered ending with /> instead of a closing tag."
+  (r-opts :void-element true))
 
-;; Declaring a whole bunch of tags
+(def no-escape
+  "Prevents (tag->string) from escaping HTML sensitive
+   chars in content. Used by <script>."
+  (r-opts :no-escape true))
 
-(def h1 (tag "h1"))
-(def h2 (tag "h2"))
-(def h3 (tag "h3"))
-(def h4 (tag "h4"))
-(def h5 (tag "h5"))
-(def h6 (tag "h6"))
-(def hr (tag "hr" void-element))
-(def ul (tag "ul"))
-(def ol (tag "ol"))
-(def li (tag "li"))
-(def dl (tag "dl"))
-(def dt (tag "dt"))
-(def dd (tag "dd"))
-(def b (tag "b"))
-(def i (tag "i"))
-(def u (tag "u"))
-(def s (tag "s"))
-(def del (tag "del"))
-(def ins (tag "ins"))
-(def small (tag "small"))
-(def sup (tag "sup"))
-(def sub (tag "sub"))
-(def pre (tag "pre"))
-(def q (tag "q"))
-(def blockquote (tag "blockquote"))
-(def cite (tag "cite"))
-(def mark (tag "mark"))
-(def dbo (tag "dbo"))
-(def a (tag "a"))
-(def img (tag "img" void-element))
-(def embed (tag "embed" void-element))
-(def object (tag "object" void-element))
-(def param (tag "param" void-element))
-(def iframe (tag "iframe"))
-(def audio (tag "audio"))
-(def video (tag "video"))
-(def p (tag "p"))
-(def span (tag "span"))
-(def div (tag "div"))
-(def nav (tag "nav"))
-(def br (tag "br" void-element))
-(def canvas (tag "canvas"))
-(def textarea (tag "textarea"))
-(def table (tag "table"))
-(def thead (tag "thead"))
-(def tbody (tag "tbody"))
-(def tfoot (tag "tfoot"))
-(def th (tag "th"))
-(def tr (tag "tr"))
-(def td (tag "td"))
-(def caption (tag "caption"))
-(def col (tag "col" void-element))
-(def colgroup (tag "colgroup"))
-(def address (tag "address"))
-(def article (tag "article"))
-(def header (tag "header"))
-(def footer (tag "footer"))
-(def main (tag "main"))
-(def section (tag "section"))
-(def aside (tag "aside"))
-(def figure (tag "figure"))
-(def figcaption (tag "figcaption"))
-(def form (tag "form"))
-(def legend (tag "legend"))
-(def select (tag "select"))
-(def option (tag "option"))
-(def optgroup (tag "optgroup"))
-(def fieldset (tag "fieldset"))
-(def label (tag "label"))
-(def input (tag "input" void-element))
-(def button (tag "button"))
-(def progress (tag "progress"))
-(def html (tag "html"))
-(def head (tag "head"))
-(def title (tag "title"))
-(def link (tag "link" void-element))
-(def style (tag "style"))
-(def base (tag "base" void-element))
-(def body (tag "body"))
-(def noscript (tag "noscript"))
+(def pad-children
+  "Causes (tag->string) to add extra spaces between non-Tag
+   child items."
+  (r-opts :pad-children true))
 
-;; Specialized tags
+;; Standard HTML Tags
 
-(defn !-- [& content] (literal (str-join "<!-- " content " -->")))
+(deftags h1 h2 h3 h4 h5 h6)
+(deftag hr void-element)
+(deftag br void-element)
+(deftags ul ol li)
+(deftags dl dt dd)
+(deftags b i u s)
+(deftags del ins)
+(deftags small sup sub)
+(deftags pre q blockquote cite mark dbo)
+(deftag a)
+(deftag img void-element)
+(deftag embed void-element)
+(deftag object void-element)
+(deftag param void-element)
+(deftags iframe audio video)
+(deftags p span div nav)
+(deftags canvas textarea)
+(deftags table thead tbody tfoot th tr td caption colgroup)
+(deftag col void-element)
+(deftags address article header footer main section aside)
+(deftags figure figcaption legend)
+(deftags form select option optgroup fieldset label input button progress)
+(deftags html title link style base head body noscript)
 
-(def script (tag "script" no-escape))
+;; Specialized "tags"
 
-(def js (script {:type "text/javascript"}))
+(defn !--
+  "Ouputs an HTML Comment."
+  [& content] (literal (str-join "<!-- " content " -->")))
 
-(defn import-js [& urls] (map #(js {:src %}) urls))
+(def script
+  "Outputs unescaped contents in a <script> tag."
+  (tag "script" no-escape))
 
-(defn import-css [& urls] (map #(link {:rel "stylesheet" :type "text/css" :href %}) urls))
+(def js
+  "Outputs unescaped contents in a <script type=\"text/javascript\"> tag."
+  (script {:type "text/javascript"}))
+
+(defn import-js
+  "Adds a series of <script> tags to import sequence of JavaScript files."
+  [& urls] (map #(js {:src %}) urls))
+
+(defn import-css
+  "Adds a series of <link> tags to import a sequence of CSS files."
+  [& urls] (map #(link {:rel "stylesheet" :type "text/css" :href %}) urls))
 
 (defn favicon
+  "Sets the page's favicon to the given URL."
   ([type url] (link {:rel "shortcut icon" :type type :href url}))
   ([url] (link {:rel "shortcut icon" :href url})))
 
-(defn media-source [url type] (tag "source" {:src url :type type}))
+(defn- comp-tag [t u] (fn [& items] (t (map u (flatten items)))))
 
-(defn page-meta [prop value] (tag "meta" {:name prop :content value}))
+(def bullet-list
+  "Makes arguments into items in an unordered list."
+  (comp-tag ul li))
 
-(defn radio [param value] (input {:name param :id value :value value :type "radio"}))
+(def number-list
+  "Makes arguments into items in an ordered list."
+  (comp-tag ol li))
 
-;; Higher-order "tags"
+(def row-cells
+  "Makes arguments into table cells in a table row."
+  (comp-tag tr td))
 
-(defn comp-tag [t u] (fn [& items] (t (map u (flatten items)))))
+(defn make-table [& rows]
+  "Makes a <table> with a <tbody> out of a 2D seq (seq of seqs)."
+  (table
+    (tbody
+      (map
+        (fn [cells]
+          (tr
+            (map (fn [cell] (td cell)) cells)))
+        rows))))
 
-(def bullet-list (comp-tag ul li))
+(defn radio
+  "Creates a radio button for given param name with given value."
+  [param value] (input {:name param :id value :value value :type "radio"}))
 
-(def number-list (comp-tag ol li))
-
-(def row-cells (comp-tag tr td))
-
-(defn radio-list [param & opts] (mapcat (fn [[text value]] [(radio param value) (label text {:for value})]) (partition 2 opts)))
+(defn radio-list [param & opts]
+  "Makes a group of radio buttons for the parameter of the given name
+   with the list of options.
+   ex: (\"dayofweek\" \"Monday\" \"mon\" \"Tuesday\" \"tue\" ...)"
+  (mapcat
+    (fn [[text value]] [(radio param value) (label text {:for value})])
+    (partition 2 opts)))
 
 ;; Decorators
 
 (defn color
+  "Sets the foreground color for a Tag."
   ([c] (css :color c))
   ([c t] (t (css :color c))))
 
-(def hide (css :display "none"))
+(def hide
+  "Hides a tag using \"display: none\"."
+  (css :display "none"))
 
-(def center (css :margin "0 auto" :text-align "center"))
+(def center
+  "Centers a tag using \"margin: 0 auto; text-align: center\"."
+  (css :margin "0 auto" :text-align "center"))
 
 ;; Character Entities
 
-(def nbsp (literal "&nbsp;"))
-(def copyright (literal "&copy;"))
-(def registered (literal "&reg;"))
-(def trademark (literal "&trade;"))
-(def euro (literal "&euro;"))
-(def pound (literal "&pound;"))
-(def cent (literal "&cent;"))
-(def yen (literal "&yen;"))
+(def nbsp
+  "A non-breaking space."
+  (literal "&nbsp;"))
+
+(def copyright
+  "A copyright (©) symbol."
+  (literal "&copy;"))
+
+(def registered
+  "A registered trademark (®) symbol."
+  (literal "&reg;"))
+
+(def trademark
+  "A trademark (™) symbol."
+  (literal "&trade;"))
+
+(def euro
+  "A Euro (€) symbol."
+  (literal "&euro;"))
+
+(def pound
+  "A British Pound (£) symbol."
+  (literal "&pound;"))
+
+(def cent
+  "A U.S. Cent (¢) symbol."
+  (literal "&cent;"))
+
+(def yen
+  "A Japanese Yen (¥‎) symbol."
+  (literal "&yen;"))
