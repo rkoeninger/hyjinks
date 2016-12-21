@@ -23,8 +23,9 @@
     (if js/window.callPhantom
       (js/window.callPhantom #js {:exitCode (if success 0 1)})
       (js/setTimeout
-        #(set! (.-innerHTML (js/document.getElementById "results")) (if success "Success" "Failure"))
-        1000))))
+        #(let [results (js/document.getElementById "results")]
+          (set! (.-innerHTML results) (if success "Success" "Failure")))
+        1))))
 
 (set! (.-onload js/window)
   #(run-tests 'hyjinks.browser.dev))
