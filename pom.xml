@@ -1,10 +1,9 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<?xml version="1.0" encoding="UTF-8"?><project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <groupId>hyjinks</groupId>
   <artifactId>hyjinks</artifactId>
   <packaging>jar</packaging>
-  <version>0.0.2-SNAPSHOT</version>
+  <version>0.0.2</version>
   <name>hyjinks</name>
   <description>Hyjinks - An HTML generation/templating library</description>
   <url>http://github.com/rkoeninger/hyjinks</url>
@@ -18,7 +17,7 @@
   <scm>
     <connection>scm:git:git://github.com/rkoeninger/hyjinks.git</connection>
     <developerConnection>scm:git:ssh://git@github.com/rkoeninger/hyjinks.git</developerConnection>
-    <tag>1c82e9f41f9e8a7783786d8c45e25958139bd380
+    <tag>922dd3301f7c1c3fb87d12688dfe700736279129
 </tag>
     <url>https://github.com/rkoeninger/hyjinks</url>
   </scm>
@@ -52,6 +51,7 @@
             <configuration>
               <sources>
                 <source>src\cljs</source>
+                <source>src\server_dev</source>
               </sources>
             </configuration>
           </execution>
@@ -81,11 +81,14 @@
       </releases>
     </repository>
   </repositories>
+  <dependencyManagement>
+    <dependencies/>
+  </dependencyManagement>
   <dependencies>
     <dependency>
       <groupId>org.clojure</groupId>
       <artifactId>clojure</artifactId>
-      <version>1.8.0</version>
+      <version>1.7.0</version>
       <exclusions>
         <exclusion>
           <groupId>org.clojure</groupId>
@@ -96,7 +99,51 @@
     <dependency>
       <groupId>org.clojure</groupId>
       <artifactId>clojurescript</artifactId>
-      <version>1.8.40</version>
+      <version>1.7.122</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.clojure</groupId>
+          <artifactId>clojure</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>ring</groupId>
+      <artifactId>ring-core</artifactId>
+      <version>1.4.0</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.clojure</groupId>
+          <artifactId>clojure</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>ring-middleware-format</groupId>
+      <artifactId>ring-middleware-format</artifactId>
+      <version>0.6.0</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.clojure</groupId>
+          <artifactId>clojure</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>compojure</groupId>
+      <artifactId>compojure</artifactId>
+      <version>1.4.0</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.clojure</groupId>
+          <artifactId>clojure</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>figwheel</groupId>
+      <artifactId>figwheel</artifactId>
+      <version>0.4.0</version>
       <exclusions>
         <exclusion>
           <groupId>org.clojure</groupId>
@@ -108,6 +155,21 @@
       <groupId>org.omcljs</groupId>
       <artifactId>om</artifactId>
       <version>0.9.0</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.clojure</groupId>
+          <artifactId>clojure</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>cljsjs</groupId>
+          <artifactId>react</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>cljsjs</groupId>
+      <artifactId>react-with-addons</artifactId>
+      <version>0.13.3-0</version>
       <exclusions>
         <exclusion>
           <groupId>org.clojure</groupId>

@@ -1,4 +1,4 @@
-(defproject hyjinks "0.0.2-SNAPSHOT"
+(defproject hyjinks "0.0.2"
   :description "Hyjinks - An HTML generation/templating library"
   :url "http://github.com/rkoeninger/hyjinks"
   :license {
@@ -46,7 +46,6 @@
     [compojure "1.4.0"]
     [figwheel "0.4.0"]
     [org.omcljs/om "0.9.0" :exclusions [cljsjs/react]]
-    [cljs-react-test "0.1.3-SNAPSHOT"]
     [cljsjs/react-with-addons "0.13.3-0"]]
   :exclusions
     [org.clojure/clojure]
