@@ -8,7 +8,8 @@ before_script:
   - npm install phantomjs-prebuilt@latest
 script:
   - lein test
-  - lein figwheel &
+  - lein cljsbuild once
+  - lein ring server &
   # Need some way to trigger phantomjs script when lein is done loading
   # instead of this arbitrary sleep period
   - sleep 60
