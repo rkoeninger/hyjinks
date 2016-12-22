@@ -123,34 +123,9 @@
   (invoke [this t] (extend-tag t this))
   (applyTo [this args] ((first args) this))]))
 
-(defrecord Tag [tag-name attrs css items r-opts]
+(clj-tag-ifn (defrecord Tag [tag-name attrs css items r-opts]
   #?(:clj java.lang.Object :cljs Object)
-  (toString [this] (tag->string this))
-  #?@(:clj [
-  clojure.lang.IFn
-  (invoke [this] this)
-  (invoke [this x0] (extend-tag this x0))
-  (invoke [this x0 x1] (extend-tag this x0 x1))
-  (invoke [this x0 x1 x2] (extend-tag this x0 x1 x2))
-  (invoke [this x0 x1 x2 x3] (extend-tag this x0 x1 x2 x3))
-  (invoke [this x0 x1 x2 x3 x4] (extend-tag this x0 x1 x2 x3 x4))
-  (invoke [this x0 x1 x2 x3 x4 x5] (extend-tag this x0 x1 x2 x3 x4 x5))
-  (invoke [this x0 x1 x2 x3 x4 x5 x6] (extend-tag this x0 x1 x2 x3 x4 x5 x6))
-  (invoke [this x0 x1 x2 x3 x4 x5 x6 x7] (extend-tag this x0 x1 x2 x3 x4 x5 x6 x7))
-  (invoke [this x0 x1 x2 x3 x4 x5 x6 x7 x8] (extend-tag this x0 x1 x2 x3 x4 x5 x6 x7 x8))
-  (invoke [this x0 x1 x2 x3 x4 x5 x6 x7 x8 x9] (extend-tag this x0 x1 x2 x3 x4 x5 x6 x7 x8 x9))
-  (invoke [this x0 x1 x2 x3 x4 x5 x6 x7 x8 x9 x10] (extend-tag this x0 x1 x2 x3 x4 x5 x6 x7 x8 x9 x10))
-  (invoke [this x0 x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11] (extend-tag this x0 x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11))
-  (invoke [this x0 x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11 x12] (extend-tag this x0 x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11 x12))
-  (invoke [this x0 x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11 x12 x13] (extend-tag this x0 x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11 x12 x13))
-  (invoke [this x0 x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11 x12 x13 x14] (extend-tag this x0 x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11 x12 x13 x14))
-  (invoke [this x0 x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11 x12 x13 x14 x15] (extend-tag this x0 x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11 x12 x13 x14 x15))
-  (invoke [this x0 x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11 x12 x13 x14 x15 x16] (extend-tag this x0 x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11 x12 x13 x14 x15 x16))
-  (invoke [this x0 x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11 x12 x13 x14 x15 x16 x17] (extend-tag this x0 x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11 x12 x13 x14 x15 x16 x17))
-  (invoke [this x0 x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11 x12 x13 x14 x15 x16 x17 x18] (extend-tag this x0 x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11 x12 x13 x14 x15 x16 x17 x18))
-  (invoke [this x0 x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11 x12 x13 x14 x15 x16 x17 x18 x19] (extend-tag this x0 x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11 x12 x13 x14 x15 x16 x17 x18 x19))
-  (invoke [this x0 x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11 x12 x13 x14 x15 x16 x17 x18 x19 more] (apply extend-tag this x0 x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11 x12 x13 x14 x15 x16 x17 x18 x19 more))
-  (applyTo [this args] (apply extend-tag this args))]))
+  (toString [this] (tag->string this))))
 
 (do #?@(
   :cljs

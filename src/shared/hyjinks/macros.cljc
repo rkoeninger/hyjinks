@@ -20,11 +20,25 @@
 
 (defmacro cljs-tag-ifn [type]
   `(~'extend-type ~type
-    IFn
+    cljs.core/IFn
     (~'-invoke
       ([~'this] ~'this)
       ~@(map cljs-invoke (map inc (range 20)))
       ~(let [params (invoke-params 20)]
         `([~'this ~@params ~'more] (~'apply ~'extend-tag ~'this ~@params ~'more))))))
 
-(defmacro clj-tag-ifn [x] x)
+(defn- clj-invoke [n]
+  (let [params (invoke-params n)]
+  `(~'invoke [~'this ~@params] (~'extend-tag ~'this ~@params))))
+
+(defmacro clj-tag-ifn [decl]
+  #?(:cljs decl
+     :clj
+      (concat
+        decl
+        ['clojure.lang.IFn
+         '(invoke [this] this)]
+        (map clj-invoke (map inc (range 20)))
+        (let [params (invoke-params 20)]
+          [`(~'invoke [~'this ~@params ~'more] (~'apply ~'extend-tag ~'this ~@params ~'more))])
+        [`(~'applyTo [~'this ~'args] (~'apply ~'extend-tag ~'this ~'args))])))
