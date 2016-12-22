@@ -1,7 +1,7 @@
 (ns hyjinks.core
   (:use [clojure.string :only (escape split join capitalize lower-case trim)])
   #?(:clj (:use [hyjinks.macros])
-     :cljs (:require-macros [hyjinks.macros :refer [deftag deftags]])))
+     :cljs (:require-macros [hyjinks.macros :refer [deftag deftags clj-tag-ifn cljs-tag-ifn]])))
 
 ;; Forward definitions to resolve circular references
 
@@ -164,31 +164,7 @@
     (-invoke
       ([this] this)
       ([this t] (extend-tag t this))))
-  (extend-type Tag
-    cljs.core/IFn
-    (-invoke
-      ([this] this)
-      ([this x0] (extend-tag this x0))
-      ([this x0 x1] (extend-tag this x0 x1))
-      ([this x0 x1 x2] (extend-tag this x0 x1 x2))
-      ([this x0 x1 x2 x3] (extend-tag this x0 x1 x2 x3))
-      ([this x0 x1 x2 x3 x4] (extend-tag this x0 x1 x2 x3 x4))
-      ([this x0 x1 x2 x3 x4 x5] (extend-tag this x0 x1 x2 x3 x4 x5))
-      ([this x0 x1 x2 x3 x4 x5 x6] (extend-tag this x0 x1 x2 x3 x4 x5 x6))
-      ([this x0 x1 x2 x3 x4 x5 x6 x7] (extend-tag this x0 x1 x2 x3 x4 x5 x6 x7))
-      ([this x0 x1 x2 x3 x4 x5 x6 x7 x8] (extend-tag this x0 x1 x2 x3 x4 x5 x6 x7 x8))
-      ([this x0 x1 x2 x3 x4 x5 x6 x7 x8 x9] (extend-tag this x0 x1 x2 x3 x4 x5 x6 x7 x8 x9))
-      ([this x0 x1 x2 x3 x4 x5 x6 x7 x8 x9 x10] (extend-tag this x0 x1 x2 x3 x4 x5 x6 x7 x8 x9 x10))
-      ([this x0 x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11] (extend-tag this x0 x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11))
-      ([this x0 x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11 x12] (extend-tag this x0 x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11 x12))
-      ([this x0 x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11 x12 x13] (extend-tag this x0 x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11 x12 x13))
-      ([this x0 x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11 x12 x13 x14] (extend-tag this x0 x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11 x12 x13 x14))
-      ([this x0 x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11 x12 x13 x14 x15] (extend-tag this x0 x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11 x12 x13 x14 x15))
-      ([this x0 x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11 x12 x13 x14 x15 x16] (extend-tag this x0 x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11 x12 x13 x14 x15 x16))
-      ([this x0 x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11 x12 x13 x14 x15 x16 x17] (extend-tag this x0 x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11 x12 x13 x14 x15 x16 x17))
-      ([this x0 x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11 x12 x13 x14 x15 x16 x17 x18] (extend-tag this x0 x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11 x12 x13 x14 x15 x16 x17 x18))
-      ([this x0 x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11 x12 x13 x14 x15 x16 x17 x18 x19] (extend-tag this x0 x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11 x12 x13 x14 x15 x16 x17 x18 x19))
-      ([this x0 x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11 x12 x13 x14 x15 x16 x17 x18 x19 more] (apply extend-tag this x0 x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11 x12 x13 x14 x15 x16 x17 x18 x19 more))))]))
+  (cljs-tag-ifn Tag)]))
 
 ;; Builder functions
 

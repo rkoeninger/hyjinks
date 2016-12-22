@@ -10,3 +10,21 @@
     ~@(map
       (fn [sym] `(~'deftag ~sym))
       syms)))
+
+(defn- invoke-params [n]
+  (map #(symbol (str "x" %)) (range n)))
+
+(defn- cljs-invoke [n]
+  (let [params (invoke-params n)]
+  `([~'this ~@params] (~'extend-tag ~'this ~@params))))
+
+(defmacro cljs-tag-ifn [type]
+  `(~'extend-type ~type
+    IFn
+    (~'-invoke
+      ([~'this] ~'this)
+      ~@(map cljs-invoke (map inc (range 20)))
+      ~(let [params (invoke-params 20)]
+        `([~'this ~@params ~'more] (~'apply ~'extend-tag ~'this ~@params ~'more))))))
+
+(defmacro clj-tag-ifn [x] x)
