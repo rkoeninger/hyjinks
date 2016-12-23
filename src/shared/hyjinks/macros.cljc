@@ -1,15 +1,17 @@
 (ns hyjinks.macros)
 
+(defn- docs [tag-name stuff]
+  (if (some #{'void-element} stuff)
+    (str "The <" tag-name "/> tag.")
+    (str "The <" tag-name "></" tag-name "> tag.")))
+
 (defmacro deftag [sym & stuff]
   `(def ~sym
-    ~(str "The <" (name sym) "> tag.")
+    ~(docs (name sym) stuff)
     (~'tag ~(name sym) ~@stuff)))
 
 (defmacro deftags [& syms]
-  `(do
-    ~@(map
-      (fn [sym] `(~'deftag ~sym))
-      syms)))
+  (cons 'do (map #(list 'deftag %) syms)))
 
 (defn- invoke-params [n]
   (map #(symbol (str "x" %)) (range n)))
