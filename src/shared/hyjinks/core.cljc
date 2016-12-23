@@ -123,7 +123,7 @@
   (invoke [this t] (extend-tag t this))
   (applyTo [this args] ((first args) this))]))
 
-(defrecord-ifn Tag [tag-name attrs css items r-opts]
+(#?(:clj defrecord-ifn :cljs defrecord) Tag [tag-name attrs css items r-opts]
   #?(:clj java.lang.Object :cljs Object)
   (toString [this] (tag->string this)))
 

@@ -39,12 +39,9 @@
   (concat
     ['defrecord]
     body
-    #?@(
-      :clj [
-        ['clojure.lang.IFn
-         '(invoke [this] this)]
-        (map clj-invoke (map inc (range 20)))
-        (let [params (invoke-params 20)]
-          [`(~'invoke [~'this ~@params ~'more] (~'apply ~'extend-tag ~'this ~@params ~'more))])
-        [`(~'applyTo [~'this ~'args] (~'apply ~'extend-tag ~'this ~'args))]]
-      :cljs [])))
+    ['clojure.lang.IFn
+     '(invoke [this] this)]
+    (map clj-invoke (map inc (range 20)))
+    (let [params (invoke-params 20)]
+      [`(~'invoke [~'this ~@params ~'more] (~'apply ~'extend-tag ~'this ~@params ~'more))])
+    [`(~'applyTo [~'this ~'args] (~'apply ~'extend-tag ~'this ~'args))]))
