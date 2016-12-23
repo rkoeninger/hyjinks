@@ -269,7 +269,7 @@
 
 (deftags h1 h2 h3 h4 h5 h6 (hr void-element) (br void-element))
 (deftags ul ol li dl dt dd)
-(deftags b i u s del ins small sup sub)
+(deftags b i u s del ins small sup sub code dfn em strong)
 (deftags pre q blockquote cite mark)
 (deftags a (img void-element))
 (deftags (embed void-element) (object void-element) (param void-element))
@@ -278,7 +278,7 @@
 (deftags table thead tbody tfoot th tr td caption colgroup (col void-element))
 (deftags address article header footer main section aside nav)
 (deftags figure figcaption legend)
-(deftags form select option optgroup fieldset label input button progress)
+(deftags form select option optgroup fieldset label input button progress datalist details)
 (deftags html title link style base head body noscript)
 
 ;; Specialized "tags"
@@ -356,6 +356,10 @@
 (def ltr
   "Overrides text direction to be left-to-right."
   (tag "bdo" {:dir "ltr"}))
+
+(def bdi
+  "Isolates contained text from surrounding text direction settings."
+  (tag "bdi"))
 
 (defn hyperlink
   "Easier function for building a hyperlink.
