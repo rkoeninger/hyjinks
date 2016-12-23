@@ -1,7 +1,7 @@
 (ns hyjinks.core
   (:use [clojure.string :only (escape split join capitalize lower-case trim)])
   #?(:clj (:use [hyjinks.macros])
-     :cljs (:require-macros [hyjinks.macros :refer [deftag deftags clj-tag-ifn cljs-tag-ifn defrecord-ifn]])))
+     :cljs (:require-macros [hyjinks.macros :refer [deftag deftags extend-type-ifn defrecord-ifn]])))
 
 ;; Forward definitions to resolve circular references
 
@@ -138,7 +138,8 @@
     cljs.core/IFn
     (-invoke
       ([this] this)
-      ([this t] (extend-tag t this))))]))
+      ([this t] (extend-tag t this))))
+  (extend-type-ifn Tag)]))
 
 ;; Builder functions
 
