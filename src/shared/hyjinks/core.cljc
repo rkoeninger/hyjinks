@@ -1,7 +1,7 @@
 (ns hyjinks.core
   (:use [clojure.string :only (escape split join capitalize lower-case trim)])
   #?(:clj (:use [hyjinks.macros])
-     :cljs (:require-macros [hyjinks.macros :refer [deftag deftags clj-tag-ifn cljs-tag-ifn]])))
+     :cljs (:require-macros [hyjinks.macros :refer [deftag deftags clj-tag-ifn cljs-tag-ifn defrecord-ifn]])))
 
 ;; Forward definitions to resolve circular references
 
@@ -123,15 +123,9 @@
   (invoke [this t] (extend-tag t this))
   (applyTo [this args] ((first args) this))]))
 
-(do #?(
-  :clj
-    (clj-tag-ifn (defrecord Tag [tag-name attrs css items r-opts]
-      #?(:clj java.lang.Object :cljs Object)
-      (toString [this] (tag->string this))))
-  :cljs
-    (defrecord Tag [tag-name attrs css items r-opts]
-      #?(:clj java.lang.Object :cljs Object)
-      (toString [this] (tag->string this)))))
+(defrecord-ifn Tag [tag-name attrs css items r-opts]
+  #?(:clj java.lang.Object :cljs Object)
+  (toString [this] (tag->string this)))
 
 (do #?@(
   :cljs
@@ -144,8 +138,7 @@
     cljs.core/IFn
     (-invoke
       ([this] this)
-      ([this t] (extend-tag t this))))
-  (cljs-tag-ifn Tag)]))
+      ([this t] (extend-tag t this))))]))
 
 ;; Builder functions
 
