@@ -11,14 +11,18 @@
     (~'tag ~(name sym) ~@stuff)))
 
 (defmacro deftags [& syms]
-  (cons 'do (map #(list 'deftag %) syms)))
+  (letfn [(f [x]
+            (if (list? x)
+              (cons 'deftag x)
+              (list 'deftag x)))]
+    (cons 'do (map f syms))))
 
 (defn- invoke-params [n]
   (map #(symbol (str "x" %)) (range n)))
 
 (defn- cljs-invoke [n]
   (let [params (invoke-params n)]
-  `([~'this ~@params] (~'extend-tag ~'this ~@params))))
+    `([~'this ~@params] (~'extend-tag ~'this ~@params))))
 
 (defmacro extend-type-ifn [type]
   (list
@@ -33,7 +37,7 @@
 
 (defn- clj-invoke [n]
   (let [params (invoke-params n)]
-  `(~'invoke [~'this ~@params] (~'extend-tag ~'this ~@params))))
+    `(~'invoke [~'this ~@params] (~'extend-tag ~'this ~@params))))
 
 (defmacro defrecord-ifn [& body]
   (concat
