@@ -270,7 +270,7 @@
 (deftags h1 h2 h3 h4 h5 h6 (hr void-element) (br void-element))
 (deftags ul ol li dl dt dd)
 (deftags b i u s del ins small sup sub)
-(deftags pre q blockquote cite mark dbo)
+(deftags pre q blockquote cite mark)
 (deftags a (img void-element))
 (deftags (embed void-element) (object void-element) (param void-element))
 (deftags iframe audio video canvas)
@@ -285,7 +285,8 @@
 
 (defn !--
   "Ouputs an HTML Comment."
-  [& content] (literal (str-join "<!-- " content " -->")))
+  [& content]
+  (literal (str-join "<!-- " content " -->")))
 
 (def script
   "Outputs unescaped contents in a <script> tag."
@@ -297,11 +298,13 @@
 
 (defn import-js
   "Adds a series of <script> tags to import sequence of JavaScript files."
-  [& urls] (map #(js {:src %}) urls))
+  [& urls]
+  (map #(js {:src %}) urls))
 
 (defn import-css
   "Adds a series of <link> tags to import a sequence of CSS files."
-  [& urls] (map #(link {:rel "stylesheet" :type "text/css" :href %}) urls))
+  [& urls]
+  (map #(link {:rel "stylesheet" :type "text/css" :href %}) urls))
 
 (defn favicon
   "Sets the page's favicon to the given URL."
@@ -322,19 +325,15 @@
   "Makes arguments into table cells in a table row."
   (comp-tag tr td))
 
-(defn make-table [& rows]
+(defn make-table
   "Makes a <table> with a <tbody> out of a 2D seq (seq of seqs)."
-  (table
-    (tbody
-      (map
-        (fn [cells]
-          (tr
-            (map (fn [cell] (td cell)) cells)))
-        rows))))
+  [& rows]
+  (table (tbody (map #(tr (map td %)) (flatten rows)))))
 
 (defn radio
   "Creates a radio button for given param name with given value."
-  [param value] (input {:name param :id value :value value :type "radio"}))
+  [param value]
+  (input {:name param :id value :value value :type "radio"}))
 
 (defn radio-list [param & opts]
   "Makes a group of radio buttons for the parameter of the given name
@@ -343,6 +342,26 @@
   (mapcat
     (fn [[text value]] [(radio param value) (label text {:for value})])
     (partition 2 opts)))
+
+(defn abbr
+  "Creates an abbreviation
+   ex: (abbr \"NASA\" \"National Aeronautics and Space Administration\")"
+  [full-name short-name]
+  (tag "abbr" {:title full-name} short-name))
+
+(def rtl
+  "Overrides text direction to be right-to-left."
+  (tag "bdo" {:dir "rtl"}))
+
+(def ltr
+  "Overrides text direction to be left-to-right."
+  (tag "bdo" {:dir "ltr"}))
+
+(defn hyperlink
+  "Easier function for building a hyperlink.
+   ex: (hyperlink \"http://www.google.com\" \"The Google\")"
+  [url & content]
+  (a {:href url} content))
 
 ;; Decorators
 
