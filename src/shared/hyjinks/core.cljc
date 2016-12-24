@@ -73,7 +73,7 @@
         tag-name       (first selector-parts)
         id-clause      (first (filter (partial starts-with "#") selector-parts))
         class-clauses  (filter (partial starts-with ".") selector-parts)]
-    {:tag-name    (first selector-parts)
+    {:tag-name    (or tag-name "div")
      :id          (if id-clause (subs id-clause 1))
      :class-names (mapv #(subs % 1) class-clauses)}))
 
@@ -279,7 +279,8 @@
 (deftags address article header footer main section aside nav)
 (deftags figure figcaption legend)
 (deftags form select option optgroup fieldset label input button progress datalist details)
-(deftags html title link style base head body noscript)
+(deftags html title style base head body noscript)
+(deftags (link void-element))
 
 ;; Specialized "tags"
 
