@@ -1,6 +1,6 @@
 (ns hyjinks-test
   (:use hyjinks.core)
-  (:use clojure.test))
+  (:require [clojure.test :refer [deftest is testing]]))
 
 (defn should-equal-str
   "Asserts that all values in `xs` have equivalent `str` values"

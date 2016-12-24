@@ -1,6 +1,6 @@
 (ns hyjinks.react
-  (:use [clojure.string :only (join)])
-  (:require [hyjinks.core :as h :include-macros true]))
+  (:require [clojure.string :refer [join]]
+            [hyjinks.core :as h :include-macros true]))
 
 (defn- apply-flat-join [f x]
   (cond

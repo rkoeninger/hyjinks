@@ -1,7 +1,6 @@
 (ns hyjinks.core
-  (:use [clojure.string :only (escape split join capitalize lower-case trim)])
-  #?(:clj (:use [hyjinks.macros])
-     :cljs (:require-macros [hyjinks.macros :refer [deftag deftags extend-type-ifn defrecord-ifn]])))
+  (:require [clojure.string :refer [escape split join capitalize lower-case trim]]
+            [hyjinks.macros #?(:clj :refer :cljs :refer-macros) [deftag deftags extend-type-ifn defrecord-ifn]]))
 
 ;; Forward definitions to resolve circular references
 

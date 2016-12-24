@@ -1,11 +1,11 @@
 (ns hyjinks.browser-test
-  (:require [cljs.test :refer [successful?] :refer-macros [run-tests]]
+  (:require [cljs.test :refer [report successful?] :refer-macros [run-tests]]
             [hyjinks.dom-test]
             [hyjinks.react-test]))
 
 (enable-console-print!)
 
-(defmethod cljs.test/report [:cljs.test/default :end-run-tests] [m]
+(defmethod report [:cljs.test/default :end-run-tests] [m]
   (let [success (successful? m)]
     (if js/window.callPhantom
       (js/window.callPhantom #js {:exitCode (if success 0 1)})

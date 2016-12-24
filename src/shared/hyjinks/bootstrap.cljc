@@ -1,5 +1,5 @@
 (ns hyjinks.bootstrap
-  (:use [hyjinks.core :only (import-js import-css css div)]))
+  (:require [hyjinks.core :refer [import-js import-css css div]]))
 
 (defn import-bootstrap
   ([] (import-bootstrap "3.3.7"))
