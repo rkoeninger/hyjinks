@@ -8,10 +8,10 @@
   :repositories [
     ["clojars" {:sign-releases false}]]
   :repl-options {:init-ns hyjinks.core}
-  :source-paths ["src/shared" "src/cljs" "src/server_dev"]
+  :source-paths ["src/shared" "src/cljs"]
   :clean-targets ^{:protect false} ["target" "logs" "resources/public/js/compiled"]
   :test-paths ["test/clj"]
-  :jar-exclusions [#"dev" #".html" #"public" #"server"]
+  :jar-exclusions [#"public"]
   :cljsbuild {
     :builds {
       :dev {
@@ -41,6 +41,5 @@
     [org.clojure/clojure]
   :figwheel {
     :server-port 3450
-    :ring-handler hyjinks.server.dev/app
     :css-dirs ["resources/public/css"]
     :server-logfile "logs/figwheel_server.log"})
