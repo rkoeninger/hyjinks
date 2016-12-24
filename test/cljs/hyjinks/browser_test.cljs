@@ -1,4 +1,4 @@
-(ns hyjinks.browser.dev
+(ns hyjinks.browser-test
   (:require [cljs.test :refer-macros [deftest is testing run-tests]]
             [hyjinks.core :as h :include-macros true]
             [hyjinks.dom :as hd]))
@@ -28,4 +28,4 @@
         1))))
 
 (set! (.-onload js/window)
-  #(run-tests 'hyjinks.browser.dev))
+  #(run-tests 'hyjinks.browser-test))

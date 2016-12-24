@@ -9,32 +9,22 @@
     ["clojars" {:sign-releases false}]]
   :repl-options {:init-ns hyjinks.core}
   :source-paths ["src/shared" "src/cljs" "src/server_dev"]
-  :clean-targets ^{:protect false} [
-    "target"
-    "logs"
-    "resources/public/js/compiled"]
-  :test-paths ["test"]
+  :clean-targets ^{:protect false} ["target" "logs" "resources/public/js/compiled"]
+  :test-paths ["test/clj"]
   :jar-exclusions [#"dev" #".html" #"public" #"server"]
   :cljsbuild {
     :builds {
       :dev {
-        :source-paths ["src/shared" "src/cljs" "src/cljs_dev"]
+        :source-paths ["src/shared" "src/cljs" "test/cljs"]
         :compiler {
           :output-to "resources/public/js/compiled/hyjinks_browser.js"
           :output-dir "resources/public/js/compiled/out"
           :asset-path "js/compiled/out"
           :optimizations :none
-          :main hyjinks.browser.dev
+          :main hyjinks.browser-test
           :source-map true
           :source-map-timestamp true
-          :cache-analysis true}}
-      :min {
-        :source-paths ["src/shared" "src/cljs"]
-        :compiler {
-          :output-to "resources/public/js/compiled/hyjinks_browser.js"
-          :optimizations :advanced
-          :pretty-print false}}}
-    :test-commands {"test" ["phantomjs" "browser_test.js"]}}
+          :cache-analysis true}}}}
   :plugins [
     [lein-cljsbuild "1.1.0"]
     [lein-figwheel "0.4.0"]]
@@ -50,9 +40,6 @@
   :exclusions
     [org.clojure/clojure]
   :figwheel {
-    :http-server-root "public" ; default and assumes "resources"
-    :server-port 3449
-    ; :nrepl-port 7888
     :css-dirs ["resources/public/css"]
     :ring-handler hyjinks.server.dev/app
     :server-logfile "logs/figwheel_server.log"})
