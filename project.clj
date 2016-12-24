@@ -40,6 +40,7 @@
   :exclusions
     [org.clojure/clojure]
   :figwheel {
-    :css-dirs ["resources/public/css"]
+    :server-port 3450
     :ring-handler hyjinks.server.dev/app
+    :css-dirs ["resources/public/css"]
     :server-logfile "logs/figwheel_server.log"})

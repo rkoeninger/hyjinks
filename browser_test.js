@@ -8,7 +8,7 @@ var args = require("system").args;
 var url;
 
 if (args.length > 1 && args[1] === "server") {
-  url = "http://localhost:3449/";
+  url = "http://localhost:3450/";
 } else {
   url = "resources/public/index.html";
 }
