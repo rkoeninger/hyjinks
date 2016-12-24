@@ -89,7 +89,7 @@
       (if (= tag-name "html") "<!DOCTYPE html>")
       "<" tag-name attrs+css
       (if (:void-element r-opts)
-        " />"
+        ">"
         [">" (child-join (map escape-child items)) "</" tag-name ">"]))))
 
 ;; Core types

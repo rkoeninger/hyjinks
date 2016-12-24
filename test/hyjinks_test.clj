@@ -79,7 +79,7 @@
   ; CSS can be applied with a CSS object
   (should-equal-str
     (div (css :color "red") (br))
-    "<div style=\"; color: red;\"><br /></div>")
+    "<div style=\"; color: red;\"><br></div>")
 
   ; Empty strings and nil get ignored
   (should-equal-str
@@ -95,7 +95,7 @@
   (should-equal-str
     (br)
     br
-    "<br />")
+    "<br>")
 
   ; CSS properties can be constants if they don't need arguments
   ; And can be used as functions
