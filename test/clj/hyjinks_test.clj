@@ -91,12 +91,6 @@
     (div "A" "" nil "B" "")
     (div nil nil "A" "B" ""))
   
-  ; Tag can just be a constant if it doesn't need arguments
-  (should-equal-str
-    (br)
-    br
-    "<br>")
-
   ; CSS properties can be constants if they don't need arguments
   ; And can be used as functions
   (should-equal-str
@@ -113,14 +107,6 @@
   ; But Tags shouldn't be anywhere else
   (should-fail (color div "red"))
 
-  ; Nullary application should be idempotent - and equal to unapplied tag
-  (should-equal-str
-    div
-    (div)
-    ((div))
-    (((div)))
-    ((((div)))))
-
   ; Applying tag as function should be same as extend-tag
   (should-equal-str
     (extend-tag (div (center)) (color :red))
@@ -135,24 +121,60 @@
     (special-div "Hi")
     (div (center) {:class "special"} "Hi"))
 
-  ; Test tag application with many arguments - up to 20
-  (should-equal-str
-    (p "a" "b" "c" "d" "e" "f" "g" "h" "i" "j")
-    (apply p ["a" "b" "c" "d" "e" "f" "g" "h" "i" "j"])
-    (p ["a" "b" "c" "d" "e" "f" "g" "h" "i" "j"])
-    "<p>abcdefghij</p>")
-
-  ; Test tag application with many arguments - over 20
-  (should-equal-str
-    (p "a" "b" "c" "d" "e" "f" "g" "h" "i" "j" "k" "l" "m" "n" "o" "p" "q" "r" "s" "t" "u" "v" "w" "x" "y" "z")
-    (apply p ["a" "b" "c" "d" "e" "f" "g" "h" "i" "j" "k" "l" "m" "n" "o" "p" "q" "r" "s" "t" "u" "v" "w" "x" "y" "z"])
-    (p ["a" "b" "c" "d" "e" "f" "g" "h" "i" "j" "k" "l" "m" "n" "o" "p" "q" "r" "s" "t" "u" "v" "w" "x" "y" "z"])
-    "<p>abcdefghijklmnopqrstuvwxyz</p>")
-
   ; tag function can take string/symbol/keyword with css selector syntax
   (is (= (:attrs (tag "div.clear#content")) (attrs :id "content" :className "clear")))
   (is (= (:attrs (tag 'div.clear#content)) (attrs :id "content" :className "clear")))
   (is (= (:attrs (tag :div.clear#content)) (attrs :id "content" :className "clear"))))
+
+(deftest tag-function-selector-syntax
+  (testing "default tag name is \"div\""
+    (let [{:keys [tag-name attrs]} (tag "#me.class1.class2")]
+      (is (= "div" tag-name))
+      (is (= "me" (:id attrs)))
+      (is (= "class1 class2" (:className attrs)))))
+
+  (testing "empty string specifies no id, classes or tag-name (defaults to \"div\")"
+    (let [{:keys [tag-name]} (tag "")]
+      (is (= "div" tag-name)))))
+
+(deftest interchangeability-of-strings-keywords-symbols
+  (testing "attr names should be same whether in the form of strings, keywords or symbols"
+    (is (= (str (attrs "title" "hi"))
+           (str (attrs :title "hi"))
+           (str (attrs 'title "hi")))))
+
+  (testing "css property names should be same whether in the form of strings, keywords or symbols"
+    (is (= (str (css "color" "red"))
+           (str (css :color "red"))
+           (str (css 'color "red"))))))
+
+(deftest function-arities
+  (testing "tag function itself is same as tag function applied to zero args"
+    (is (= br
+           (br)))
+    (is (= (str br)
+           (str (br))
+           "<br>")))
+
+  (testing "tag function should be able to handle up to 20 args"
+    (is (= (p "a" "b" "c" "d" "e" "f" "g" "h" "i" "j")
+           (apply p ["a" "b" "c" "d" "e" "f" "g" "h" "i" "j"])
+           (p ["a" "b" "c" "d" "e" "f" "g" "h" "i" "j"])))
+    (is (= (str (p "a" "b" "c" "d" "e" "f" "g" "h" "i" "j"))
+           "<p>abcdefghij</p>")))
+
+  (testing "tag function should be able to handle more than 20 args"
+    (is (= (p "a" "b" "c" "d" "e" "f" "g" "h" "i" "j" "k" "l" "m" "n" "o" "p" "q" "r" "s" "t" "u" "v" "w" "x" "y" "z")
+           (apply p ["a" "b" "c" "d" "e" "f" "g" "h" "i" "j" "k" "l" "m" "n" "o" "p" "q" "r" "s" "t" "u" "v" "w" "x" "y" "z"])
+           (p ["a" "b" "c" "d" "e" "f" "g" "h" "i" "j" "k" "l" "m" "n" "o" "p" "q" "r" "s" "t" "u" "v" "w" "x" "y" "z"])))
+    (is (= (str (p "a" "b" "c" "d" "e" "f" "g" "h" "i" "j" "k" "l" "m" "n" "o" "p" "q" "r" "s" "t" "u" "v" "w" "x" "y" "z"))
+           "<p>abcdefghijklmnopqrstuvwxyz</p>"))))
+
+(deftest nullary-application
+  (testing "when tag/attrs/css functions are applied to no args, should be same"
+    (is (= div (div) ((div))))
+    (is (= (color :red) ((color :red))))
+    (is (= (attrs :title "hi") ((attrs :title "hi"))))))
 
 (deftest child-items
   (testing "when some child items are lists"

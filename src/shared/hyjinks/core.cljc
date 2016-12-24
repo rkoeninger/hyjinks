@@ -55,21 +55,22 @@
     (lower-case (name k))))
 
 (defn- split-selector [s]
-  (let [i (indexOf s "." 1)
-        j (indexOf s "#" 1)
-        k (cond
-            (not (or i j)) nil
-            (not i) j
-            (not j) i
-            (< j i) j
-            (< i j) i)]
-    (if k
-      (cons (subs s 0 k) (split-selector (subs s k)))
-      (cons s nil))))
+  (if (not= s "")
+    (let [i (indexOf s "." 1)
+          j (indexOf s "#" 1)
+          k (cond
+              (not (or i j)) nil
+              (not i) j
+              (not j) i
+              (< j i) j
+              (< i j) i)]
+      (if k
+        (cons (subs s 0 k) (split-selector (subs s k)))
+        (cons s nil)))))
 
 (defn- parse-selector [selector]
   (let [selector-parts (split-selector (name selector))
-        tag-name       (first selector-parts)
+        tag-name       (first (filter #(not (or (starts-with "#" %) (starts-with "." %))) selector-parts))
         id-clause      (first (filter (partial starts-with "#") selector-parts))
         class-clauses  (filter (partial starts-with ".") selector-parts)]
     {:tag-name    (or tag-name "div")
