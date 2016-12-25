@@ -30,7 +30,7 @@
     [lein-figwheel "0.5.8"]]
   :dependencies [
     [org.clojure/clojure "1.8.0"]
-    [org.clojure/clojurescript "1.8.34"]
+    [org.clojure/clojurescript "1.8.51"]
     [ring/ring-core "1.4.0"]
     [ring-middleware-format "0.6.0"]
     [compojure "1.4.0"]
