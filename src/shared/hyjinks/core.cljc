@@ -1,5 +1,5 @@
 (ns hyjinks.core
-  (:require [clojure.string :refer [escape split join capitalize lower-case trim]]
+  (:require [clojure.string :refer [escape split join capitalize lower-case trim index-of]]
             [hyjinks.macros #?(:clj :refer :cljs :refer-macros) [deftag deftags extend-type-ifn defrecord-ifn]]))
 
 ;; Forward definitions to resolve circular references
@@ -30,10 +30,6 @@
 
 (defn- starts-with [prefix s] (= prefix (subs s 0 (#?(:clj .length :cljs .-length) prefix))))
 
-(defn- indexOf [s sub from-index]
-  (let [i (.indexOf s sub from-index)]
-    (if (neg? i) nil i)))
-
 (def ^{:private true} escape-chars {
   \< "&lt;"
   \> "&gt;"
@@ -56,8 +52,8 @@
 
 (defn- split-selector [s]
   (if (not= s "")
-    (let [i (indexOf s "." 1)
-          j (indexOf s "#" 1)
+    (let [i (index-of s "." 1)
+          j (index-of s "#" 1)
           k (cond
               (not (or i j)) nil
               (not i) j

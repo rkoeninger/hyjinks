@@ -26,11 +26,11 @@
           :source-map-timestamp true
           :cache-analysis true}}}}
   :plugins [
-    [lein-cljsbuild "1.1.0"]
+    [lein-cljsbuild "1.1.1"]
     [lein-figwheel "0.4.0"]]
   :dependencies [
-    [org.clojure/clojure "1.7.0"]
-    [org.clojure/clojurescript "1.7.122"]
+    [org.clojure/clojure "1.8.0"]
+    [org.clojure/clojurescript "1.8.34"]
     [ring/ring-core "1.4.0"]
     [ring-middleware-format "0.6.0"]
     [compojure "1.4.0"]
