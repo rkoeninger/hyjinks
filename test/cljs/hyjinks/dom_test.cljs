@@ -15,3 +15,10 @@
     (is (= "some text" (.-textContent (aget (.-childNodes d) 0))))
     (is (= "more text" (.-textContent (aget (.-childNodes d) 2))))
     (is (= "Hi!" (.getAttribute (aget (.-children d) 0) "title")))))
+
+(deftest literals
+  (testing "literals should have no apparent effect"
+    (let [d0 (tag->dom (h/span "<hi>"))
+          d1 (tag->dom (h/span (h/literal "<hi>")))]
+      (is (= "<hi>" (.-textContent d0)))
+      (is (= "<hi>" (.-textContent d1))))))
