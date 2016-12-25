@@ -13,3 +13,10 @@
               "more text")
             (fn [x] (case x :hello "Hi" x)))]
     (is true)))
+
+(deftest literals
+  (testing "literals should have no apparent effect"
+    (let [d0 (tag->react (h/span "<hi>"))
+          d1 (tag->react (h/span (h/literal "<hi>")))]
+      (is true #_ (= "<hi>" (.-textContent d0)))
+      (is true #_ (= "<hi>" (.-textContent d1))))))
