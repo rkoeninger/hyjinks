@@ -2,131 +2,95 @@
   (:use hyjinks.core)
   (:require [clojure.test :refer [deftest is testing]]))
 
-(defn should-equal-str
-  "Asserts that all values in `xs` have equivalent `str` values"
-  [& xs] (is (apply = (map str xs))))
+(deftest basic-tag-operations
+  (testing "tags get applied just like functions"
+    (is (= "<p>content</p>"
+           (str (p "content")))))
 
-(defmacro should-fail [expr]
-  `(try ~expr false (catch java.lang.Throwable e# true)))
+  (testing "applying a tag as a function is just like using extend-tag"
+    (is (= (div center (color :red))
+           (extend-tag div center (color :red)))))
 
-(deftest feature-tour
+  (testing "new functions can be created by application of tags"
+    (let [big-blue-header (h1 center (color :blue))]
+      (is (= (h1 (color :blue) center "Hi")
+             (big-blue-header "Hi")))))
 
-  ; Each tag has a function named for it
-  (should-equal-str
-    (p "Content")
-    "<p>Content</p>")
-  (should-equal-str
-    (ol (li "Monday") (li "Tuesday") (li "Wednesday"))
-    "<ol><li>Monday</li><li>Tuesday</li><li>Wednesday</li></ol>")
+  (testing "tags can be composed like normal functions"
+    (is (= "<div>Lorem ipsum<em>dolor</em>sit amet</div>"
+           (str (div "Lorem ipsum" (em "dolor") "sit amet")))))
 
-  ; Non-strings can be passed as tag contents
-  (should-equal-str
-    (p 1)
-    "<p>1</p>")
-  (should-equal-str
-    (p false)
-    "<p>false</p>")
-  (should-equal-str
-    (p false "qwe" 4 3 "asd")
-    "<p>falseqwe43asd</p>")
-  (should-equal-str
-    (p false "qwe" (p "zxc") 4 3 "asd")
-    "<p>falseqwe<p>zxc</p>43asd</p>")
+  (testing "tag function can be mapped over arguments"
+    (is (= "<ol><li>Monday</li><li>Tuesday</li><li>Wednesday</li></ol>"
+           (str (ol (map li ["Monday" "Tuesday" "Wednesday"]))))))
 
-  ; Extra padding between non-tag elements can be specified
-  (should-equal-str
-    (p pad-children false "qwe" (p "zxc") 4 3 "asd")
-    "<p>false qwe<p>zxc</p>4 3 asd</p>")
+  (testing "argument list gets automatically flattened into one long list"
+    (is (= (p 1 2 3)
+           (p [1 2 3])
+           (p [1] [2 3])
+           (p 1 [[2]] 3))))
 
-  ; Tag attributes can be specified with hash-maps
-  (should-equal-str
-    (p {:attr "value"} "Content")
-    "<p attr=\"value\">Content</p>")
+  (testing "empty strings and nil don't effect output"
+    (is (= (p)
+           (p "")
+           (p nil)
+           (p "" nil)))
+    (is (= (div "A" "" nil "B" "")
+           (div nil nil "A" "B" ""))))
 
-  ; Tags can be composed like normal functions
-  (should-equal-str
-    (ul (map li ["A" "B" "C"]))
-    "<ul><li>A</li><li>B</li><li>C</li></ul>")
+  (testing "non-string child items get toString'd"
+    (is (= "<p>1</p>" (str (p 1))))
+    (is (= "<p>false</p>" (str (p false))))
+    (is (= "<p>falseqwe43asd</p>" (str (p false "qwe" 4 3 "asd"))))
+    (is (= "<p>falseqwe<p>zxc</p>43asd</p>" (str (p false "qwe" (p "zxc") 4 3 "asd"))))))
 
-  ; String content gets escaped, unless it's a literal
-  (should-equal-str
-    (p "<content>")
-    "<p>&lt;content&gt;</p>")
-  (should-equal-str
-    (p (literal "<content>"))
-    "<p><content></p>")
+(deftest attributes
+  (testing "tag attributes can be specified with plain hash-maps"
+    (is (= "<p attr=\"value\">Content</p>"
+           (str (p {:attr "value"} "Content"))))))
 
-  ; Empty tags have trailing '/' for XHTML compliance
-  (should-equal-str
-    (p (tag "content"))
-    "<p><content></content></p>")
+(deftest styling
+  (testing "inline css can be specified using a property list"
+    (is (= "<div style=\"; color: red;\"><br></div>"
+           (str (div (css :color "red") (br)))))))
 
-  ; Tags can have special rendering options specified, like :both-tags
-  (should-equal-str
-    script
-    "<script></script>")
+(deftest decorators
+  (testing "decorator can be a function on tags or argument to tag as function"
+    (is (= (center div) (div center)))
+    (is (= (color "red" div) (div (color "red")))))
 
-  ; and :no-escape
-  (should-equal-str
-    (script "\"")
-    "<script>\"</script>")
+  (testing "decorators can be used without being applied if they don't need arguments"
+    (is (= "<table style=\"; display: none;\"><tr><td>A</td><td>B</td></tr></table>"
+           (str (table (hide) (tr (td "A") (td "B"))))
+           (str (table hide (tr (td "A") (td "B"))))
+           (str (hide (table (tr (td "A") (td "B")))))))))
 
-  ; Normally, it's
-  (should-equal-str
-    (p "\"")
-    "<p>&quot;</p>")
+(deftest rendering-options
+  (testing "extra padding between non-tag elements can be specified"
+    (is (= "<p>false qwe<p>zxc</p>4 3 asd</p>"
+           (str (p pad-children false "qwe" (p "zxc") 4 3 "asd"))))))
 
-  ; CSS can be applied with a CSS object
-  (should-equal-str
-    (div (css :color "red") (br))
-    "<div style=\"; color: red;\"><br></div>")
+(deftest html-escaping
+  (testing "string content gets escaped"
+    (is (= "<p>&lt;content&gt;</p>"
+           (str (p "<content>"))))
+    (is (= "<p>&quot;</p>"
+           (str (p "\"")))))
 
-  ; Empty strings and nil get ignored
-  (should-equal-str
-    (p)
-    (p "")
-    (p nil)
-    (p "" nil))
-  (should-equal-str
-    (div "A" "" nil "B" "")
-    (div nil nil "A" "B" ""))
-  
-  ; CSS properties can be constants if they don't need arguments
-  ; And can be used as functions
-  (should-equal-str
-    (table (hide) (tr (td "A") (td "B")))
-    (table hide (tr (td "A") (td "B")))
-    (hide (table (tr (td "A") (td "B"))))
-    "<table style=\"; display: none;\"><tr><td>A</td><td>B</td></tr></table>")
+  (testing "literals do not escape their contents"
+    (is (= "<p><content></p>"
+           (str (p (literal "<content>"))))))
 
-  ; Some decorators are variadic and take a Tag as the optional last argument
-  (should-equal-str
-    (center div)
-    (div center))
+  (testing "script tag has no-escape enabled by default"
+    (is (= "<script>\"</script>"
+           (str (script "\""))))))
 
-  ; But Tags shouldn't be anywhere else
-  (should-fail (color div "red"))
+(deftest void-elements
+  (testing "when void elements are serialized, they don't have a closing tag"
+    (is (= "<br>"
+           (str br)))))
 
-  ; Applying tag as function should be same as extend-tag
-  (should-equal-str
-    (extend-tag (div (center)) (color :red))
-    (div (center) (color :red)))
-  (should-equal-str
-    ((div (center)) (color :red))
-    (div (center) (color :red)))
-
-  ; This allows for easy specialization of tags
-  (def special-div (div {:class "special"} (center)))
-  (should-equal-str
-    (special-div "Hi")
-    (div (center) {:class "special"} "Hi"))
-
-  ; tag function can take string/symbol/keyword with css selector syntax
-  (is (= (:attrs (tag "div.clear#content")) (attrs :id "content" :className "clear")))
-  (is (= (:attrs (tag 'div.clear#content)) (attrs :id "content" :className "clear")))
-  (is (= (:attrs (tag :div.clear#content)) (attrs :id "content" :className "clear"))))
-
-(deftest tag-function-selector-syntax
+(deftest tag-selector-syntax
   (testing "default tag name is \"div\""
     (let [{:keys [tag-name attrs]} (tag "#me.class1.class2")]
       (is (= "div" tag-name))
@@ -135,7 +99,16 @@
 
   (testing "empty string specifies no id, classes or tag-name (defaults to \"div\")"
     (let [{:keys [tag-name]} (tag "")]
-      (is (= "div" tag-name)))))
+      (is (= "div" tag-name))))
+
+  (testing "many classes can be specified"
+    (let [{:keys [attrs]} (tag ".class1.class2.class3.class4")]
+      (is (= "class1 class2 class3 class4" (:className attrs)))))
+
+  (testing "selector syntax can be given as a string, keyword or symbol"
+    (is (= (tag "div.clear#content")
+           (tag :div.clear#content)
+           (tag 'div.clear#content)))))
 
 (deftest interchangeability-of-strings-keywords-symbols
   (testing "attr names should be same whether in the form of strings, keywords or symbols"
