@@ -7,12 +7,12 @@
    [(import-js  (str "https://maxcdn.bootstrapcdn.com/bootstrap/" (name version) "/js/bootstrap.min.js"))
     (import-css (str "https://maxcdn.bootstrapcdn.com/bootstrap/" (name version) "/css/bootstrap.min.css"))]))
 
-(def container (div {:className "container"}))
+(def container (div {:class "container"}))
 
-(def row (div {:className "row"}))
+(def row (div {:class "row"}))
 
 (defn grid-col [size span & content]
-  (div {:className (str "col-" (name size) "-" span)} content))
+  (div {:class (str "col-" (name size) "-" span)} content))
 
 (defn col-xs [size & content] (grid-col "xs" size content))
 (defn col-sm [size & content] (grid-col "sm" size content))

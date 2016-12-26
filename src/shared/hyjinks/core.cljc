@@ -42,14 +42,6 @@
     (escape x escape-chars)
     x))
 
-(defn attr-name
-  "Converts an HTML Attribute name from the convention
-   used in Hyjinks to the actual name used in HTML."
-  [k]
-  (case k
-    :className "class"
-    (lower-case (name k))))
-
 (defn- split-selector [s]
   (if (not= s "")
     (let [i (index-of s "." 1)
@@ -76,8 +68,8 @@
 (defn tag->string
   "Serializes a tag and its children into an HTML string."
   [{:keys [tag-name attrs css r-opts items]}]
-  (let [{:keys [className]} attrs
-        attrs (if (sequential? className) (assoc attrs :className (join " " className)) attrs)
+  (let [{css-class :class} attrs
+        attrs (if (sequential? css-class) (assoc attrs :class (join " " css-class)) attrs)
         attrs+css (if (empty? css) attrs (assoc attrs :style (str css)))
         escape-child (if (:no-escape r-opts) identity html-escape)
         child-join (if (:pad-children r-opts) str-join-extra-spaces str-join)]
@@ -102,7 +94,7 @@
 (defrecord Attrs []
   #?(:clj java.lang.Object :cljs Object)
   (toString [this]
-    (str-join (map (fn [[k v]] [" " (attr-name k) "=\"" (html-escape v) "\""]) this)))
+    (str-join (map (fn [[k v]] [" " (name k) "=\"" (html-escape v) "\""]) this)))
   #?@(:clj [
   clojure.lang.IFn
   (invoke [this] this)
@@ -179,12 +171,12 @@
 
 (defn- merge-attrs [xs ys]
   (let [m (merge xs ys)
-        cs0 (join-class-names (:className xs))
-        cs1 (join-class-names (:className ys))]
-    (assoc m :className
+        cs0 (join-class-names (:class xs))
+        cs1 (join-class-names (:class ys))]
+    (assoc m :class
       (if (and cs0 cs1)
         (str cs0 " " cs1)
-        (join-class-names (:className m))))))
+        (join-class-names (:class m))))))
 
 (defn- extend-attrs [attrs more] (prune-map (reduce merge-attrs attrs more)))
 
@@ -221,7 +213,7 @@
                  (conj
                   (filter attrs-or-map? stuff)
                   (if id {:id id})
-                  (if (seq class-names) {:className class-names})))
+                  (if (seq class-names) {:class class-names})))
         css    (extend-css    (Css.)           (filter css? stuff))
         r-opts (extend-r-opts (RenderOptions.) (filter r-opts? stuff))
         items  (extend-items  []               (filter child-item? stuff))]

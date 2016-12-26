@@ -18,7 +18,7 @@
             (doto e (.appendChild (tag->dom child f))))
           (reduce
             (fn [e [k v]]
-              (doto e (.setAttribute (h/attr-name k) (apply-flat-join f v))))
+              (doto e (.setAttribute (name k) (apply-flat-join f v))))
             (js/document.createElement tag-name)
             attrs+css)
           items))

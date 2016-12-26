@@ -7,7 +7,7 @@
 
 (deftest react-transform
   (let [d (tag->react
-            (h/div {:className ["class1" "class2"]}
+            (h/div {:class ["class1" "class2"]}
               "some text"
               (h/span {:title [:hello "!"]})
               "more text")

@@ -98,7 +98,7 @@
     (let [{:keys [tag-name attrs]} (tag "#me.class1.class2")]
       (is (= "div" tag-name))
       (is (= "me" (:id attrs)))
-      (is (= "class1 class2" (:className attrs)))))
+      (is (= "class1 class2" (:class attrs)))))
 
   (testing "empty string specifies no id, classes or tag-name (defaults to \"div\")"
     (let [{:keys [tag-name]} (tag "")]
@@ -106,7 +106,7 @@
 
   (testing "many classes can be specified"
     (let [{:keys [attrs]} (tag ".class1.class2.class3.class4")]
-      (is (= "class1 class2 class3 class4" (:className attrs)))))
+      (is (= "class1 class2 class3 class4" (:class attrs)))))
 
   (testing "selector syntax can be given as a string, keyword or symbol"
     (is (= (tag "div.clear#content")
@@ -160,30 +160,30 @@
         (is (= (:items t) ["numbers:" 1 2 3]))))))
 
 (deftest class-name-attribute
-  (testing "when :className attribute is set to a list"
-    (let [t (div {:className ["a" "b" "c"]})]
-      (is (= "a b c" (get-in t [:attrs :className])))
+  (testing "when :class attribute is set to a list"
+    (let [t (div {:class ["a" "b" "c"]})]
+      (is (= "a b c" (get-in t [:attrs :class])))
 
       (testing "it should be converted to a space-separated list"
         (is (= (tag->string t) "<div class=\"a b c\"></div>")))
 
-      (testing "and tag is applied to additional :className attribute"
-        (let [t (t {:className ["d" "e"]})]
+      (testing "and tag is applied to additional :class attribute"
+        (let [t (t {:class ["d" "e"]})]
 
-          (testing ":className should be flattened into a string"
-            (is (= "a b c d e" (get-in t [:attrs :className])))
+          (testing ":class should be flattened into a string"
+            (is (= "a b c d e" (get-in t [:attrs :class])))
             (is (= (tag->string t) "<div class=\"a b c d e\"></div>")))))))
 
-  (testing "when :className attribute is set to an empty list"
-    (let [t (div {:className []})]
+  (testing "when :class attribute is set to an empty list"
+    (let [t (div {:class []})]
 
       (testing "it should not be emitted"
         (is (= (tag->string t) "<div></div>")))))
 
-  (testing "nil values should be ignored in className list"
-    (let [t (div {:className ["abc" nil "def"]})]
+  (testing "nil values should be ignored in class list"
+    (let [t (div {:class ["abc" nil "def"]})]
       (is (= (tag->string t) "<div class=\"abc def\"></div>"))))
 
   (testing "should be able to combine class names given as list with class name given as string"
-    (let [t ((tag "div.abc" {:className "def"}) {:className "ghi"})]
-      (is (= (get-in t [:attrs :className]) "abc def ghi")))))
+    (let [t ((tag "div.abc" {:class "def"}) {:class "ghi"})]
+      (is (= (get-in t [:attrs :class]) "abc def ghi")))))
