@@ -214,7 +214,8 @@
    use CSS selector syntax to provide an id and CSS class names
    in addition to a tag name."
   [selector & stuff]
-  (let [{:keys [tag-name id class-names]} (parse-selector selector)
+  (let [stuff (flatten stuff)
+        {:keys [tag-name id class-names]} (parse-selector selector)
         attrs  (extend-attrs
                  (Attrs.)
                  (conj
@@ -230,13 +231,14 @@
   "Merges a tag with additional child tags, HTML Attributes,
    CSS Attributes and Rendering Options."
   [{:keys [tag-name attrs css r-opts items] :as t} & stuff]
-  (if (empty? stuff)
-    t
-    (let [attrs  (extend-attrs  attrs  (filter attrs-or-map? stuff))
-          css    (extend-css    css    (filter css? stuff))
-          r-opts (extend-r-opts r-opts (filter r-opts? stuff))
-          items  (extend-items  items  (filter child-item? stuff))]
-      (Tag. tag-name attrs css items r-opts))))
+  (let [stuff (flatten stuff)]
+    (if (empty? stuff)
+      t
+      (let [attrs  (extend-attrs  attrs  (filter attrs-or-map? stuff))
+            css    (extend-css    css    (filter css? stuff))
+            r-opts (extend-r-opts r-opts (filter r-opts? stuff))
+            items  (extend-items  items  (filter child-item? stuff))]
+        (Tag. tag-name attrs css items r-opts)))))
 
 (defn literal
   "Creates a new Literal that will be passed through rendering without
@@ -275,8 +277,7 @@
 (deftags address article header footer main section aside nav)
 (deftags figure figcaption legend)
 (deftags form select option optgroup fieldset label input button progress datalist details)
-(deftags html title style base head body noscript)
-(deftags (link void-element))
+(deftags html title (link void-element) style base head body noscript)
 
 ;; Specialized "tags"
 
@@ -308,46 +309,60 @@
   ([type url] (link {:rel "shortcut icon" :type type :href url}))
   ([url] (link {:rel "shortcut icon" :href url})))
 
-(defn bullet-list
+(defn- split-child-items [contents]
+  ((juxt filter remove) child-item? (flatten contents)))
+
+(defn- comp-tags [f g]
+  (fn [& contents]
+    (let [[items other] (split-child-items contents)]
+     (select other (map option items)))))
+
+(def drop-down
+  "Makes a select box from the given options"
+  (comp-tags select option))
+
+(def bullet-list
   "Makes arguments into items in an unordered list."
-  [& contents]
-  (ul (map li (flatten contents))))
+  (comp-tags ul li))
 
-(defn number-list
+(def number-list
   "Makes arguments into items in an ordered list."
-  [& contents]
-  (ol (map li (flatten contents))))
+  (comp-tags ol li))
 
-(defn make-table
-  "Makes a <table> with a <tbody> out of a 2D seq (seq of seqs)."
-  [& rows]
-  (table (tbody (map #(tr (map td %)) (flatten rows)))))
-
-(defn radio
+(defn radio-button
   "Creates a radio button for given param name with given value."
   [param value]
-  (input {:name param :id value :value value :type "radio"}))
+  (input {:name param :id (str param "-" value) :value value :type "radio"}))
 
-(defn radio-list [param & opts]
+(defn radio-group
   "Makes a group of radio buttons for the parameter of the given name
    with the list of options.
-   ex: (\"dayofweek\" \"Monday\" \"mon\" \"Tuesday\" \"tue\" ...)"
-  (mapcat
-    (fn [[text value]] [(radio param value) (label text {:for value})])
-    (partition 2 opts)))
+   ex: (radio-group \"dayofweek\" \"Monday\" \"mon\" \"Tuesday\" \"tue\" ...)"
+  [param & opts]
+  (let [[items other] (split-child-items opts)]
+    (div
+      other
+      (map
+        (fn [[text value]]
+          [(radio-button param value)
+           (label {:for (str param "-" value)} text)])
+        (partition 2 items)))))
 
 (defn glossary
   "Builds a defintion list (<dl>/<dt>/<dd>) of the given
    name-value pairs, sorted in alphabetical order."
-  [dict] (->> dict
-              (sort-by first)
-              (map (fn [[term value]] [(dt term) (dd value)]))
-              dl))
+  [& contents]
+  (let [[items other] (split-child-items contents)]
+    (dl
+      other
+      (map
+        (fn [[term value]] [(dt term) (dd value)])
+        (sort-by first (partition 2 items))))))
 
 (defn abbr
   "Creates an abbreviation
    ex: (abbr \"NASA\" \"National Aeronautics and Space Administration\")"
-  [full-name short-name]
+  [short-name full-name]
   (tag "abbr" {:title full-name} short-name))
 
 (def rtl

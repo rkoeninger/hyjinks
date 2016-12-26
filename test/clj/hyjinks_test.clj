@@ -28,7 +28,10 @@
     (is (= (p 1 2 3)
            (p [1 2 3])
            (p [1] [2 3])
-           (p 1 [[2]] 3))))
+           (p 1 [[2]] 3)))
+    (is (= (p {:title "hi"} "content" (css :color :red))
+           (p ["content"] [{:title "hi"} (css :color :red)])
+           (p [[[(css :color :red)]] "content" [{:title "hi"}]]))))
 
   (testing "empty strings and nil don't effect output"
     (is (= (p)
