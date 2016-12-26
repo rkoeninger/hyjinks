@@ -11,11 +11,11 @@
 
 (def row (div {:class "row"}))
 
-(defn grid-col [size span & content]
-  (div {:class (str "col-" (name size) "-" span)} content))
+(defn grid-col [screen-size width & content]
+  (div {:class (str "col-" (name screen-size) "-" width)} content))
 
-(defn col-xs [size & content] (grid-col "xs" size content))
-(defn col-sm [size & content] (grid-col "sm" size content))
-(defn col-md [size & content] (grid-col "md" size content))
-(defn col-lg [size & content] (grid-col "lg" size content))
-(defn col-xl [size & content] (grid-col "xl" size content))
+(defn col-xs [width & content] (grid-col "xs" width content))
+(defn col-sm [width & content] (grid-col "sm" width content))
+(defn col-md [width & content] (grid-col "md" width content))
+(defn col-lg [width & content] (grid-col "lg" width content))
+(defn col-xl [width & content] (grid-col "xl" width content))
