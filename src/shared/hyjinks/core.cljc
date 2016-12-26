@@ -265,12 +265,12 @@
 
 (deftags h1 h2 h3 h4 h5 h6 (hr void-element) (br void-element))
 (deftags ul ol li dl dt dd)
-(deftags b i u s del ins small sup sub code dfn em strong)
+(deftags b i u s del ins small sup sub code kbd dfn em strong)
 (deftags pre q blockquote cite mark)
 (deftags a (img void-element))
 (deftags (embed void-element) (object void-element) (param void-element))
 (deftags iframe audio video canvas)
-(deftags p span div textarea)
+(deftags p span div textarea output)
 (deftags table thead tbody tfoot th tr td caption colgroup (col void-element))
 (deftags address article header footer main section aside nav)
 (deftags figure figcaption legend)
@@ -308,19 +308,15 @@
   ([type url] (link {:rel "shortcut icon" :type type :href url}))
   ([url] (link {:rel "shortcut icon" :href url})))
 
-(defn- comp-tag [t u] (fn [& items] (t (map u (flatten items)))))
-
-(def bullet-list
+(defn bullet-list
   "Makes arguments into items in an unordered list."
-  (comp-tag ul li))
+  [& contents]
+  (ul (map li (flatten contents))))
 
-(def number-list
+(defn number-list
   "Makes arguments into items in an ordered list."
-  (comp-tag ol li))
-
-(def row-cells
-  "Makes arguments into table cells in a table row."
-  (comp-tag tr td))
+  [& contents]
+  (ol (map li (flatten contents))))
 
 (defn make-table
   "Makes a <table> with a <tbody> out of a 2D seq (seq of seqs)."
@@ -339,6 +335,14 @@
   (mapcat
     (fn [[text value]] [(radio param value) (label text {:for value})])
     (partition 2 opts)))
+
+(defn glossary
+  "Builds a defintion list (<dl>/<dt>/<dd>) of the given
+   name-value pairs, sorted in alphabetical order."
+  [dict] (->> dict
+              (sort-by first)
+              (map (fn [[term value]] [(dt term) (dd value)]))
+              dl))
 
 (defn abbr
   "Creates an abbreviation
