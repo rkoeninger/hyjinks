@@ -20,5 +20,6 @@
             attrs+css (if (empty? css) attrs (assoc attrs :style css))
             attrs+css (reduce (fn [r [k v]] (assoc r (attr-name k) (apply-flat-join f v))) {} attrs+css)]
         (.apply (aget js/React.DOM tag-name) nil (into-array (cons (clj->js attrs+css) (map #(tag->react % f) items)))))
+    (h/comment? arg) ""
     f (f arg)
     :else arg))

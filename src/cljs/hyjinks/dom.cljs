@@ -22,5 +22,6 @@
             (js/document.createElement tag-name)
             attrs+css)
           items))
+    (h/comment? arg) (js/document.createComment (:content arg))
     f (js/document.createTextNode (str (f arg)))
     :else (js/document.createTextNode (str arg))))
