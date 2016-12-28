@@ -19,14 +19,18 @@
   ([arg]
     (tag->react {} arg))
   ([{:keys [transform-content transform-attr] :as opts} arg]
-    (if (h/tag? arg)
-      (let [{:keys [tag-name attrs css items]} arg
-            attrs+css (if (empty? css) attrs (assoc attrs :style css))]
-        (.apply
-          (aget js/React.DOM tag-name)
-          nil
-          (into-array
-            (cons
-              (clj->js (reduce (partial append-attr transform-attr) {} attrs+css))
-              (map (partial tag->react opts) items)))))
-      (if transform-content (transform-content arg) arg))))
+    (cond
+      (h/tag? arg)
+        (let [{:keys [tag-name attrs css items]} arg
+              attrs+css (if (empty? css) attrs (assoc attrs :style css))]
+          (.apply
+            (aget js/React.DOM tag-name)
+            nil
+            (into-array
+              (cons
+                (clj->js (reduce (partial append-attr transform-attr) {} attrs+css))
+                (map (partial tag->react opts) items)))))
+      (h/comment? arg)
+        ""
+      :else
+        (if transform-content (transform-content arg) arg))))

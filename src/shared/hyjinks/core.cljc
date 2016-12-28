@@ -13,7 +13,7 @@
   (let [rem? #(or (nil? %) (= "" %) (and (coll? %) (empty? %)))]
     (apply dissoc m (map first (filter (comp rem? second) m)))))
 
-(defn- str-join [& items] (join "" (flatten items)))
+(defn- str-join [& items] (join (flatten items)))
 
 (defn- interposep [sep pred [x & [y :as more] :as coll]]
   (cond
@@ -86,6 +86,10 @@
   #?(:clj java.lang.Object :cljs Object)
   (toString [_] s))
 
+(defrecord Comment [content]
+  #?(:clj java.lang.Object :cljs Object)
+  (toString [_] (str "<!-- " content " -->")))
+
 (defrecord RenderOptions []
   #?(:clj java.lang.Object :cljs Object)
   (toString [this]
@@ -136,6 +140,11 @@
    through rendering without being escaped or encoded."
   [x]
   (instance? Literal x))
+
+(defn comment?
+  "Checks if argument is an HTML Comment."
+  [x]
+  (instance? Comment x))
 
 (defn tag?
   "Checks if argument is a Tag."
@@ -276,7 +285,7 @@
 (defn !--
   "Ouputs an HTML Comment."
   [& content]
-  (literal (str-join "<!-- " content " -->")))
+  (Comment. (str-join content)))
 
 (def script
   "Outputs unescaped contents in a <script> tag."

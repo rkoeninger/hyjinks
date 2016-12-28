@@ -17,14 +17,18 @@
   ([arg]
     (tag->dom {} arg))
   ([{:keys [transform-content transform-attr] :as opts} arg]
-    (if (h/tag? arg)
-      (let [{:keys [tag-name attrs css items]} arg
-            attrs+css (if (empty? css) attrs (assoc attrs :style css))]
-        (reduce
-          (partial append-node (partial tag->dom opts))
+    (cond
+      (h/tag? arg)
+        (let [{:keys [tag-name attrs css items]} arg
+              attrs+css (if (empty? css) attrs (assoc attrs :style css))]
           (reduce
-            (partial append-attr transform-attr)
-            (js/document.createElement tag-name)
-            attrs+css)
-          items))
-      (js/document.createTextNode (str (if transform-content (transform-content arg) arg))))))
+            (partial append-node (partial tag->dom opts))
+            (reduce
+              (partial append-attr transform-attr)
+              (js/document.createElement tag-name)
+              attrs+css)
+            items))
+      (h/comment? arg)
+        (js/document.createComment (:content arg))
+      :else
+        (js/document.createTextNode (str (if transform-content (transform-content arg) arg))))))
