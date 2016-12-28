@@ -2,25 +2,29 @@
   (:require [clojure.string :refer [join]]
             [hyjinks.core :as h :include-macros true]))
 
-(defn- apply-flat-join [f x]
-  (cond
-    (not f)         x
-    (sequential? x) (join "" (map (comp str f) (flatten x)))
-    :else           (f x)))
+(defn- append-node [f e child]
+  (doto e (.appendChild (f child))))
 
-(defn tag->dom [arg & [f]]
-  (cond
-    (h/tag? arg)
+(defn- append-attr [f e [k v]]
+  (doto e (.setAttribute
+    (name k)
+    (if (sequential? v)
+      (let [v (flatten v)]
+        (join (if f (map #(f k %) v) v)))
+      (if f (f k v) v)))))
+
+(defn tag->dom
+  ([arg]
+    (tag->dom {} arg))
+  ([{:keys [transform-content transform-attr] :as opts} arg]
+    (if (h/tag? arg)
       (let [{:keys [tag-name attrs css items]} arg
             attrs+css (if (empty? css) attrs (assoc attrs :style css))]
         (reduce
-          (fn [e child]
-            (doto e (.appendChild (tag->dom child f))))
+          (partial append-node (partial tag->dom opts))
           (reduce
-            (fn [e [k v]]
-              (doto e (.setAttribute (name k) (apply-flat-join f v))))
+            (partial append-attr transform-attr)
             (js/document.createElement tag-name)
             attrs+css)
           items))
-    f (js/document.createTextNode (str (f arg)))
-    :else (js/document.createTextNode (str arg))))
+      (js/document.createTextNode (str (if transform-content (transform-content arg) arg))))))

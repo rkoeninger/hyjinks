@@ -3,13 +3,19 @@
             [hyjinks.core :as h :include-macros true]
             [hyjinks.dom :refer [tag->dom]]))
 
+(defn- translate [x]
+  (case x
+    :hello "Hi"
+    x))
+
 (deftest dom-transform
   (let [d (tag->dom
+            {:transform-content translate
+             :transform-attr #(translate %2)}
             (h/div {:class ["class1" "class2"]}
               "some text"
               (h/span {:title [:hello "!"]})
-              "more text")
-            (fn [x] (case x :hello "Hi" x)))]
+              "more text"))]
     (is (= "class1 class2" (.getAttribute d "class")))
     (is (= 3 (.-length (.-childNodes d))))
     (is (= "some text" (.-textContent (aget (.-childNodes d) 0))))
