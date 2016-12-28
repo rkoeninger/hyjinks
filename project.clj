@@ -30,16 +30,19 @@
     [lein-figwheel "0.5.8"]]
   :dependencies [
     [org.clojure/clojure "1.8.0"]
-    [org.clojure/clojurescript "1.8.51"]
-    [ring/ring-core "1.4.0"]
-    [ring-middleware-format "0.6.0"]
-    [compojure "1.4.0"]
-    [figwheel "0.4.0"]
-    [org.omcljs/om "0.9.0" :exclusions [cljsjs/react]]
-    [cljsjs/react-with-addons "0.13.3-0"]]
+    [org.clojure/clojurescript "1.8.51"]]
   :exclusions
     [org.clojure/clojure]
   :figwheel {
     :server-port 3450
     :css-dirs ["resources/public/css"]
-    :server-logfile "logs/figwheel_server.log"})
+    :server-logfile "logs/figwheel_server.log"}
+  :profiles {
+    :dev {
+      :dependencies [
+        [ring/ring-core "1.4.0"]
+        [ring-middleware-format "0.6.0"]
+        [compojure "1.4.0"]
+        [figwheel "0.4.0"]
+        [org.omcljs/om "0.9.0" :exclusions [cljsjs/react]]
+        [cljsjs/react-with-addons "0.13.3-0"]]}})
