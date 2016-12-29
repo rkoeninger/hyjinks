@@ -3,7 +3,7 @@
   <groupId>hyjinks</groupId>
   <artifactId>hyjinks</artifactId>
   <packaging>jar</packaging>
-  <version>0.0.2</version>
+  <version>0.0.3</version>
   <name>hyjinks</name>
   <description>Hyjinks - An HTML generation/templating library</description>
   <url>http://github.com/rkoeninger/hyjinks</url>
@@ -17,7 +17,7 @@
   <scm>
     <connection>scm:git:git://github.com/rkoeninger/hyjinks.git</connection>
     <developerConnection>scm:git:ssh://git@github.com/rkoeninger/hyjinks.git</developerConnection>
-    <tag>5a91d015c34f4dc6dbb21a4a7e2b1b626e9afb76
+    <tag>0839aa45373734894bbaaf667984e68e4df6b86d
 </tag>
     <url>https://github.com/rkoeninger/hyjinks</url>
   </scm>
