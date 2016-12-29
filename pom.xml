@@ -17,13 +17,13 @@
   <scm>
     <connection>scm:git:git://github.com/rkoeninger/hyjinks.git</connection>
     <developerConnection>scm:git:ssh://git@github.com/rkoeninger/hyjinks.git</developerConnection>
-    <tag>922dd3301f7c1c3fb87d12688dfe700736279129
+    <tag>5a91d015c34f4dc6dbb21a4a7e2b1b626e9afb76
 </tag>
     <url>https://github.com/rkoeninger/hyjinks</url>
   </scm>
   <build>
     <sourceDirectory>src\shared</sourceDirectory>
-    <testSourceDirectory>test</testSourceDirectory>
+    <testSourceDirectory>test\clj</testSourceDirectory>
     <resources>
       <resource>
         <directory>resources</directory>
@@ -51,7 +51,6 @@
             <configuration>
               <sources>
                 <source>src\cljs</source>
-                <source>src\server_dev</source>
               </sources>
             </configuration>
           </execution>
@@ -88,7 +87,7 @@
     <dependency>
       <groupId>org.clojure</groupId>
       <artifactId>clojure</artifactId>
-      <version>1.7.0</version>
+      <version>1.8.0</version>
       <exclusions>
         <exclusion>
           <groupId>org.clojure</groupId>
@@ -99,7 +98,7 @@
     <dependency>
       <groupId>org.clojure</groupId>
       <artifactId>clojurescript</artifactId>
-      <version>1.7.122</version>
+      <version>1.8.51</version>
       <exclusions>
         <exclusion>
           <groupId>org.clojure</groupId>
@@ -117,6 +116,7 @@
           <artifactId>clojure</artifactId>
         </exclusion>
       </exclusions>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>ring-middleware-format</groupId>
@@ -128,6 +128,7 @@
           <artifactId>clojure</artifactId>
         </exclusion>
       </exclusions>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>compojure</groupId>
@@ -139,6 +140,7 @@
           <artifactId>clojure</artifactId>
         </exclusion>
       </exclusions>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>figwheel</groupId>
@@ -150,6 +152,7 @@
           <artifactId>clojure</artifactId>
         </exclusion>
       </exclusions>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.omcljs</groupId>
@@ -165,6 +168,7 @@
           <artifactId>react</artifactId>
         </exclusion>
       </exclusions>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>cljsjs</groupId>
@@ -176,6 +180,7 @@
           <artifactId>clojure</artifactId>
         </exclusion>
       </exclusions>
+      <scope>test</scope>
     </dependency>
   </dependencies>
 </project>

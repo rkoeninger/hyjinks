@@ -1,4 +1,4 @@
-(defproject hyjinks "0.0.2"
+(defproject hyjinks "0.0.3"
   :description "Hyjinks - An HTML generation/templating library"
   :url "http://github.com/rkoeninger/hyjinks"
   :license {
