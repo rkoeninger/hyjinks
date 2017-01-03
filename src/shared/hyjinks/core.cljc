@@ -268,12 +268,12 @@
 
 (deftags h1 h2 h3 h4 h5 h6 (hr void-element) (br void-element))
 (deftags ul ol li dl dt dd)
-(deftags b i u s del ins small sup sub code kbd dfn em strong)
+(deftags b i u s del ins small sup sub code kbd dfn em strong ruby rt rp)
 (deftags pre q blockquote cite mark)
 (deftags a (img void-element))
 (deftags (embed void-element) (object void-element) (param void-element))
-(deftags iframe audio video canvas)
-(deftags p span div textarea output)
+(deftags iframe audio video (source void-element) (track void-element) canvas)
+(deftags p span div textarea output samp)
 (deftags table thead tbody tfoot th tr td caption colgroup (col void-element))
 (deftags address article header footer main section aside nav)
 (deftags figure figcaption legend)
@@ -309,6 +309,10 @@
   "Sets the page's favicon to the given URL."
   ([type url] (link {:rel "shortcut icon" :type type :href url}))
   ([url] (link {:rel "shortcut icon" :href url})))
+
+(def page-meta
+  "Creates a <meta> tag. Is also a void element."
+  (tag "meta" void-element))
 
 (defn- split-child-items [contents]
   ((juxt filter remove) child-item? (flatten contents)))
