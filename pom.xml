@@ -3,7 +3,7 @@
   <groupId>hyjinks</groupId>
   <artifactId>hyjinks</artifactId>
   <packaging>jar</packaging>
-  <version>0.0.3</version>
+  <version>0.0.4-SNAPSHOT</version>
   <name>hyjinks</name>
   <description>Hyjinks - An HTML generation/templating library</description>
   <url>http://github.com/rkoeninger/hyjinks</url>
@@ -15,11 +15,10 @@
     </license>
   </licenses>
   <scm>
+    <url>https://github.com/rkoeninger/hyjinks</url>
     <connection>scm:git:git://github.com/rkoeninger/hyjinks.git</connection>
     <developerConnection>scm:git:ssh://git@github.com/rkoeninger/hyjinks.git</developerConnection>
-    <tag>0839aa45373734894bbaaf667984e68e4df6b86d
-</tag>
-    <url>https://github.com/rkoeninger/hyjinks</url>
+    <tag>c88654d3d4dd214f7ab917652e95f9e099d0ddea</tag>
   </scm>
   <build>
     <sourceDirectory>src\shared</sourceDirectory>
@@ -71,7 +70,7 @@
     </repository>
     <repository>
       <id>clojars</id>
-      <url>https://clojars.org/repo/</url>
+      <url>https://repo.clojars.org/</url>
       <snapshots>
         <enabled>true</enabled>
       </snapshots>
@@ -90,8 +89,8 @@
       <version>1.8.0</version>
       <exclusions>
         <exclusion>
-          <groupId>org.clojure</groupId>
           <artifactId>clojure</artifactId>
+          <groupId>org.clojure</groupId>
         </exclusion>
       </exclusions>
     </dependency>
@@ -101,8 +100,8 @@
       <version>1.8.51</version>
       <exclusions>
         <exclusion>
-          <groupId>org.clojure</groupId>
           <artifactId>clojure</artifactId>
+          <groupId>org.clojure</groupId>
         </exclusion>
       </exclusions>
     </dependency>
@@ -112,8 +111,8 @@
       <version>1.4.0</version>
       <exclusions>
         <exclusion>
-          <groupId>org.clojure</groupId>
           <artifactId>clojure</artifactId>
+          <groupId>org.clojure</groupId>
         </exclusion>
       </exclusions>
       <scope>test</scope>
@@ -124,8 +123,8 @@
       <version>0.6.0</version>
       <exclusions>
         <exclusion>
-          <groupId>org.clojure</groupId>
           <artifactId>clojure</artifactId>
+          <groupId>org.clojure</groupId>
         </exclusion>
       </exclusions>
       <scope>test</scope>
@@ -136,8 +135,8 @@
       <version>1.4.0</version>
       <exclusions>
         <exclusion>
-          <groupId>org.clojure</groupId>
           <artifactId>clojure</artifactId>
+          <groupId>org.clojure</groupId>
         </exclusion>
       </exclusions>
       <scope>test</scope>
@@ -148,8 +147,8 @@
       <version>0.4.0</version>
       <exclusions>
         <exclusion>
-          <groupId>org.clojure</groupId>
           <artifactId>clojure</artifactId>
+          <groupId>org.clojure</groupId>
         </exclusion>
       </exclusions>
       <scope>test</scope>
@@ -160,12 +159,12 @@
       <version>0.9.0</version>
       <exclusions>
         <exclusion>
-          <groupId>org.clojure</groupId>
           <artifactId>clojure</artifactId>
+          <groupId>org.clojure</groupId>
         </exclusion>
         <exclusion>
-          <groupId>cljsjs</groupId>
           <artifactId>react</artifactId>
+          <groupId>cljsjs</groupId>
         </exclusion>
       </exclusions>
       <scope>test</scope>
@@ -176,8 +175,8 @@
       <version>0.13.3-0</version>
       <exclusions>
         <exclusion>
-          <groupId>org.clojure</groupId>
           <artifactId>clojure</artifactId>
+          <groupId>org.clojure</groupId>
         </exclusion>
       </exclusions>
       <scope>test</scope>
