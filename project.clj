@@ -33,6 +33,7 @@
     [org.clojure/clojurescript "1.8.51"]]
   :exclusions
     [org.clojure/clojure]
+  :jvm-opts ["--add-modules" "java.xml.bind"]
   :figwheel {
     :server-port 3450
     :css-dirs ["resources/public/css"]

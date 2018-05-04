@@ -80,6 +80,21 @@
         ">"
         [">" (child-join (map escape-child items)) "</" tag-name ">"]))))
 
+(defn tag->hiccup
+  "Translates a tag to the nested-vector representation used by hiccup."
+  [{:keys [tag-name attrs css r-opts items]}]
+  (let [{css-class :class} attrs
+        attrs (if (sequential? css-class) (assoc attrs :class (join " " css-class)) attrs)
+        attrs+css (if (empty? css) attrs (assoc attrs :style (str css)))
+        escape-child (if (:no-escape r-opts) identity html-escape)
+        child-join (if (:pad-children r-opts) str-join-extra-spaces str-join)]
+    (vec
+      (concat
+        (if (empty? attrs+css)
+          [(keyword tag-name)]
+          [(keyword tag-name) (into {} attrs+css)])
+        (map #(if (tag? %) (tag->hiccup %) %) items)))))
+
 ;; Core types
 
 (defrecord Literal [s]
