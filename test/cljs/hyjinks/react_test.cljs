@@ -5,18 +5,11 @@
             [hyjinks.core :as h :include-macros true]
             [hyjinks.react :refer [tag->react]]))
 
-(defn- translate [x]
-  (case x
-    :hello "Hi"
-    x))
-
-(deftest react-transform
+(deftest unflattened-values
   (let [d (tag->react
-            {:transform-content translate
-             :transform-attr #(translate %2)}
             (h/div {:class ["class1" "class2"]}
               "some text"
-              (h/span {:title [:hello "!"]})
+              (h/span {:title "hello!"})
               "more text"))]
     (is true)))
 
