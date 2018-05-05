@@ -18,7 +18,7 @@
     <url>https://github.com/rkoeninger/hyjinks</url>
     <connection>scm:git:git://github.com/rkoeninger/hyjinks.git</connection>
     <developerConnection>scm:git:ssh://git@github.com/rkoeninger/hyjinks.git</developerConnection>
-    <tag>c88654d3d4dd214f7ab917652e95f9e099d0ddea</tag>
+    <tag>d236378ed99c21cc890f06be64726f3dc148652a</tag>
   </scm>
   <build>
     <sourceDirectory>src\shared</sourceDirectory>

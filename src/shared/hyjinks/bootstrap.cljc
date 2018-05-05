@@ -1,12 +1,12 @@
 (ns hyjinks.bootstrap
   (:require [hyjinks.core :refer [import-js import-css css div]]))
 
-(defn- resource-url [type]
+(defn- resource-url [version type]
   (str "https://maxcdn.bootstrapcdn.com/bootstrap/" (name version) "/" type "/bootstrap.min." type))
 
 (defn import-bootstrap [version]
-  [(import-js  (resource-url "js"))
-   (import-css (resource-url "css"))])
+  [(import-js  (resource-url version "js"))
+   (import-css (resource-url version "css"))])
 
 (def container (div {:class "container"}))
 
